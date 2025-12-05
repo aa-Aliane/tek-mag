@@ -1,0 +1,213 @@
+# Repairs Management Documentation
+
+## Overview
+The Repairs Management system allows users to create, track, update, and archive repair orders for electronic devices. The system provides comprehensive functionality for managing all aspects of the repair process from initial device intake to final completion.
+
+## Frontend Architecture
+
+### Directory Structure
+```
+frontend/
+└── src/
+    ├── app/
+    │   └── (dashboard)/
+    │       └── repairs/
+    │           └── page.tsx
+    ├── components/
+    │   └── features/
+    │       └── calendrier/
+    │           ├── repairs-table.tsx
+    │           ├── repair-selection.tsx
+    │           ├── repair-ticket.tsx
+    │           └── booking-summary.tsx
+    ├── hooks/
+    │   └── use-repairs.ts
+    └── types/
+        └── repair.ts
+```
+
+### Core Components
+
+#### Repairs Page (page.tsx)
+- Main dashboard for managing repair orders
+- Displays statistics cards for different repair statuses
+- Integrates repairs table with detailed sidebar view
+- Supports search, filtering, and status management
+- Implements toast notifications for user feedback
+- Provides navigation to add new repairs
+
+#### Repairs Table (repairs-table.tsx)
+- Displays list of repairs with key information
+- Shows device type, brand, model, client info, status, and scheduled date
+- Supports sorting and filtering capabilities
+- Provides action buttons for each repair entry
+- Responsive design for different screen sizes
+
+#### Repair Selection Component (repair-selection.tsx)
+- Interactive form for modifying repair details
+- Status change functionality with comment system
+- Scheduling capabilities for repair appointments
+- Payment processing integration
+- Client notification options
+
+### Hooks
+
+#### useRepairs Hook
+- **Endpoint**: GET `/api/repairs/repairs/`
+- **Parameters**: Optional page, status, and client filters
+- **Response**: Paginated repairs with statistics
+- **Caching**: Query key `["repairs", page, status, client]`
+- **Features**: Built-in pagination and filtering
+
+#### useUpdateRepair Hook
+- **Endpoint**: PATCH `/api/repairs/repairs/{id}/`
+- **Mutation**: For updating repair details
+- **Features**: Automatic cache invalidation on success
+
+### State Management
+- Uses React Query for server state management
+- Implements optimistic updates for better UX
+- Handles loading and error states
+- Provides data synchronization across components
+
+### Data Structure
+- **Repair Model**: Comprehensive interface covering all repair aspects
+- **Status Management**: Support for different repair states
+- **Payment Tracking**: Integrated payment system
+- **Client Information**: Full client details integration
+- **Issue Tracking**: Multiple issues per repair
+- **Scheduling**: Appointment and scheduling features
+
+## Backend Architecture
+
+### Directory Structure
+```
+backend/
+└── apps/
+    └── repairs/
+        ├── models/
+        │   ├── repair.py
+        │   └── issue.py
+        ├── serializers/
+        │   └── repair_serializer.py
+        ├── views/
+        │   └── repair_viewset.py
+        └── urls.py
+```
+
+### Core Models
+
+#### Repair Model (repair.py)
+- **Fields**: uid, date, scheduled_date, client, status, product_model, description, password, price, payments, comment, device_photo, file, issues
+- **Status Choices**: "saisie", "en-cours", "prete", "en-attente"
+- **Relationships**: One-to-many with client, many-to-many with issues, many-to-one with product_model
+- **Metadata**: Creation and update timestamps
+
+#### Issue Model (issue.py)
+- **Fields**: name, device_types, requires_part, base_price
+- **Relationships**: Many-to-many with device types for issue-device type mapping
+
+### API Endpoints
+- `GET /api/repairs/repairs/` - List repairs with pagination and filtering
+- `POST /api/repairs/repairs/` - Create new repair
+- `GET /api/repairs/repairs/{id}/` - Get single repair details
+- `PATCH /api/repairs/repairs/{id}/` - Update repair details
+- `DELETE /api/repairs/repairs/{id}/` - Delete repair
+
+## Key Features
+
+### Status Management
+- Multiple repair statuses with visual indicators
+- Status history tracking with user attribution
+- Comment system for status changes
+- Client notification options
+
+### Payment Processing
+- Multiple payment methods support
+- Cash and card payment tracking
+- Payment status monitoring
+- Outstanding balance calculation
+
+### Scheduling System
+- Calendar integration for appointment scheduling
+- Date and time selection
+- Conflict detection and alerts
+- Automatic status updates for scheduled repairs
+
+### Client Management
+- Integrated client information
+- Contact details and history
+- Notification preferences
+- Repair history tracking
+
+### Issue Tracking
+- Device-specific issue catalog
+- Pricing information per issue
+- Part requirement tracking
+- Custom issue descriptions
+
+### Reporting
+- Repair statistics and dashboards
+- Financial reporting
+- Performance metrics
+- Client satisfaction tracking
+
+## Integration Points
+
+### With Add-Reparation Flow
+- Seamless transition from repair creation to management
+- Consistent data structure and status handling
+- Shared components and UI patterns
+- Unified client experience
+
+### With Calendar System
+- Scheduled repair appointments
+- Conflict detection and resolution
+- Automatic calendar updates
+- Visual appointment indicators
+
+### With Payment System
+- Integrated payment processing
+- Real-time payment tracking
+- Multiple payment methods
+- Payment history and receipts
+
+## Technical Considerations
+
+### Performance
+- Efficient data loading with pagination
+- Optimistic updates for better UX
+- Caching strategies for common queries
+- Lazy loading for detailed information
+
+### Security
+- User authentication and authorization
+- Role-based access controls
+- Data validation and sanitization
+- Secure file uploads for photos
+
+### Scalability
+- Efficient database queries
+- Indexing strategies for common lookups
+- Asynchronous processing for long operations
+- Load balancing considerations
+
+## User Experience
+
+### Workflow
+- Intuitive navigation and clear action paths
+- Consistent UI patterns across components
+- Responsive design for all devices
+- Accessible design with proper semantic markup
+
+### Feedback Mechanisms
+- Real-time status updates
+- Toast notifications for system events
+- Visual indicators for different states
+- Clear error messages and guidance
+
+### Customization
+- Configurable status workflows
+- Customizable payment methods
+- Personalized user preferences
+- Role-specific views and permissions

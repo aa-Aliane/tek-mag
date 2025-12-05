@@ -1,0 +1,276 @@
+# Repair Details Panel Documentation
+
+## Overview
+The Repair Details Panel is a sidebar component that displays comprehensive information about a selected repair order. It provides users with device details, client information, status history, payment tracking, scheduling options, and editing capabilities in a focused, accessible interface.
+
+## Frontend Architecture
+
+### Directory Structure
+```
+frontend/
+└── src/
+    ├── components/
+    │   └── features/
+    │       └── calendrier/
+    │           ├── repair-details.tsx
+    │           ├── repair-details-sheet.tsx (deprecated)
+    │           └── repair-ticket.tsx
+    ├── components/
+    │   └── ui/
+    │       └── sheet.tsx
+    └── types/
+        └── repair.ts
+```
+
+### Core Component
+
+#### Repair Details (repair-details.tsx)
+- **Purpose**: Displays comprehensive repair information in sidebar format
+- **Layout**: Header with title and action buttons, scrollable content area with information sections
+- **Structure**: Organized into multiple information cards for easy scanning
+- **Accessibility**: Proper heading hierarchy and semantic markup
+
+### Component Structure
+
+#### Header Section
+- Repair ID with status badge
+- Creation date information
+- Action buttons for common operations
+- Close button for dismissing the panel
+
+#### Device Information Card
+- Device type (smartphone, tablet, laptop, etc.)
+- Brand and model details
+- Visual indicators for device category
+- Responsive layout for different screen sizes
+
+#### Issues & Cost Card
+- List of identified issues with badges
+- Detailed issue description if available
+- Total cost calculation and display
+- Payment tracking with remaining balance
+- Visual indicators for payment status
+
+#### Client Information Card
+- Client name (first name and last name)
+- Contact information (phone number and email)
+- Profile details integration
+- Link to full client record if available
+
+#### Additional Information Card
+- Accessories included with repair
+- Device password or security information
+- Deposit status with visual indicators
+- Special instructions or notes
+
+#### Calendar Information Card
+- Creation date
+- Scheduled appointment date
+- Estimated completion date
+- Actual completion date
+- Date tracking for the full repair lifecycle
+
+#### Status History Card
+- Timeline of status changes
+- Who made each change and when
+- Comments associated with status changes
+- Client notification status
+
+### Action Buttons
+
+#### Print Button
+- **Icon**: Printer icon
+- **Function**: Generates and prints repair ticket
+- **Accessibility**: Proper label and keyboard navigation
+
+#### Recovery Button
+- **Icon**: CheckCircle icon
+- **Function**: Marks repair as recovered by client
+- **Condition**: Only visible for "prete" status
+- **Warning**: Payment verification for incomplete payments
+
+#### Payment Button
+- **Icon**: Wallet icon
+- **Function**: Opens payment processing sheet
+- **Status**: Changes appearance based on payment status
+- **Display**: Shows remaining balance when applicable
+
+#### Schedule Button
+- **Icon**: CalendarClock icon
+- **Function**: Opens scheduling dialog
+- **Label**: Changes between "Programmer" and "Modifier date"
+- **Behavior**: Only visible when scheduling is supported
+
+#### Edit Button
+- **Icon**: Edit icon
+- **Function**: Opens repair editing interface
+- **Accessibility**: Clear labeling for screen readers
+
+#### Status Change Button
+- **Icon**: ArrowUpDown icon
+- **Function**: Opens status change dialog
+- **Options**: Available status transitions based on current state
+
+### Dialog Components
+
+#### Status Change Dialog
+- Modal for changing repair status
+- Comment field for status changes
+- Client notification toggle
+- Confirmation workflow
+
+#### Schedule Repair Dialog
+- Date picker for scheduling appointments
+- Time selection capabilities
+- Conflict detection and warnings
+- Deposit status updates
+
+#### Payment Sheet
+- Payment amount entry
+- Payment method selection (cash/card)
+- Payment note option
+- Integration with repair payment tracking
+
+### Data Flow
+
+#### Input
+- **repair**: Single repair object with all related data
+- **onClose**: Callback function to close the panel
+- **onEdit**: Function for editing repair details
+- **onStatusChange**: Function for updating repair status
+- **onSchedule**: Function for scheduling repairs
+- **onAddPayment**: Function for recording payments
+- **onDeletePayment**: Function for removing payments
+- **onMarkRecovered**: Function for marking as recovered
+- **currentUserName**: Name of current user for attribution
+
+#### Data Processing
+- Date formatting using date-fns with French locale
+- Status configuration mapping with color coding
+- Payment calculations (total paid, remaining amount)
+- Payment completion verification
+
+#### State Management
+- Local state for dialog open/close status
+- Input validation and error handling
+- Loading states for API operations
+- Success/error feedback management
+
+### UI Components Used
+- **Sheet**: Side panel container
+- **Card**: Information grouping
+- **Button**: Action elements
+- **Badge**: Status and category indicators
+- **Separator**: Visual divisions between sections
+- **AlertDialog**: Confirmation dialogs
+- **Toast**: User feedback notifications
+
+### Types and Interfaces
+- **Repair**: Comprehensive repair object with all attributes
+- **RepairStatus**: Union type for allowed status values
+- **RepairOutcome**: Possible outcomes for repairs
+- **PaymentMethod**: Cash or card payment options
+
+### Accessibility Features
+
+#### Keyboard Navigation
+- Tab order follows logical sequence
+- Enter/space for button activation
+- Escape to close dialogs
+- Focus management for modals
+
+#### Screen Reader Support
+- Proper heading hierarchy (h2 for main title)
+- Semantic HTML elements
+- ARIA labels where needed
+- Clear instruction text
+
+#### Visual Accessibility
+- Sufficient color contrast
+- Resizable text elements
+- Clear visual feedback for interactions
+- Focus indicators for keyboard users
+
+### Responsive Design
+- Adapts to different screen sizes
+- Proper spacing and alignment
+- Scrollable content areas
+- Accessible button sizes
+
+## Backend Integration
+
+### API Endpoints Used
+- `PATCH /api/repairs/repairs/{id}/` for updates
+- `GET /api/repairs/repairs/{id}/` for details
+
+### Data Validation
+- Server-side validation for all updates
+- Proper error message handling
+- User permission checks
+- Data consistency verification
+
+## Key Features
+
+### Comprehensive Information Display
+- All repair-related information in one place
+- Organized sections for easy scanning
+- Visual indicators for important information
+- Contextual information based on repair status
+
+### Action-Oriented Interface
+- Common actions easily accessible
+- Context-sensitive options
+- Confirmation for destructive actions
+- Clear feedback for completed actions
+
+### Payment Integration
+- Real-time payment tracking
+- Outstanding balance calculation
+- Payment method tracking
+- Financial reporting support
+
+### Status Tracking
+- Complete status history
+- Attribution for each change
+- Comment system for context
+- Client notification tracking
+
+## Technical Considerations
+
+### Performance
+- Efficient data loading
+- Client-side calculations where possible
+- Minimal re-rendering
+- Proper memoization of expensive operations
+
+### Error Handling
+- Graceful handling of missing data
+- User-friendly error messages
+- Fallback values for incomplete information
+- Logging for debugging purposes
+
+### Security
+- User permission checks for actions
+- Data sanitization for display
+- Secure API communication
+- Input validation for updates
+
+## User Experience
+
+### Information Hierarchy
+- Most important information prominently displayed
+- Related information grouped together
+- Visual separation of different data types
+- Consistent layout across different repair types
+
+### Action Flow
+- Clear call-to-action buttons
+- Minimal steps for common operations
+- Confirmation for significant changes
+- Undo options where possible
+
+### Context Preservation
+- Maintains context when performing actions
+- Clear exit points
+- Navigation that preserves user position
+- Consistent interaction patterns

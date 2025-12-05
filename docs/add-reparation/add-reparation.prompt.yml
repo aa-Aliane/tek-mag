@@ -1,0 +1,638 @@
+# Add Réparation Functionality Documentation
+
+## Overview
+The "Add Réparation" feature is a multi-step form wizard that allows users to create repair orders for electronic devices. The process is divided into three main steps: Device selection, Issues identification, and Client information.
+
+## Frontend Architecture
+
+### Directory Structure
+```
+frontend/
+└── src/
+    ├── app/
+    │   └── (dashboard)/
+    │       └── add-reparation/
+    │           ├── layout.tsx
+    │           ├── page.tsx
+    │           ├── device/
+    │           │   └── page.tsx
+    │           ├── issues/
+    │           │   └── page.tsx
+    │           └── client/
+    │               └── page.tsx
+    ├── components/
+    │   └── add-reparation/
+    │       └── client-step.tsx
+    ├── hooks/
+    │   ├── use-device-types.ts
+    │   ├── use-brands.ts
+    │   ├── use-product-models.ts
+    │   ├── use-common-issues.ts
+    │   └── use-clients.ts
+    ├── lib/
+    │   ├── api/client.ts
+    │   └── store.ts
+    ├── store/addReparationStore.ts
+    └── types/
+        ├── common.ts
+        └── product.ts
+```
+
+### Core Components
+
+#### 1. Layout (layout.tsx)
+- Provides the shared header with progress tracking
+- Shows a summary sidebar that updates as user progresses through steps
+- Manages state visualization for device type, brand, model, issues, and other details
+- Implements sticky sidebar with scroll behavior
+- Uses useReparationStore for state management
+- Fetches device types, brands, and models to display summary information
+
+#### 2. Main Page (page.tsx)
+- Simple redirect component that navigates to `/add-reparation/device` when accessed directly
+- Uses Next.js useRouter with useEffect for immediate redirection
+
+#### 3. Device Selection Step (device/page.tsx)
+- Allows users to select device type (smartphone, tablet, laptop, etc.)
+- Dynamically loads brands based on selected device type
+- Dynamically loads models based on selected brand
+- Uses shadcn/ui components: Card, Button, Popover, Command
+- Implements loading states with Loader2 icon
+- Uses API hooks for data fetching (useDeviceTypes, useBrands, useProductModels)
+- Includes client-side filtering for models based on brand
+- Handles disabled states during loading
+
+#### 4. Issues Identification Step (issues/page.tsx)
+- Displays common issues for the selected device type
+- Allows users to select multiple issues with visual feedback
+- Includes fields for detailed description, accessories, device password
+- Provides a date picker for scheduling
+- Uses Checkbox, Calendar, Textarea, Input from shadcn/ui
+- Uses useCommonIssues hook to fetch relevant issues
+- Implements deposit received toggle with Checkbox
+
+#### 5. Client Information Step (client/page.tsx)
+- Provides ClientStep component for handling client selection/creation
+- Allows searching existing clients using shadcn Command component or creating new ones
+- Integrates with the addReparationStore for form submission
+- Navigates to '/calendrier' after successful submission
+
+#### 6. ClientStep Component (components/add-reparation/client-step.tsx)
+- Complete client form with search and creation capabilities
+- Implements client search using shadcn/ui Popover with Command component (similar to device/brand/model selection)
+- Handles new client creation with validation
+- Uses separate form states for existing vs. new clients
+- Implements badge indicator for completion status
+- Provides submitForm method that integrates with useAddReparationStore
+- **Imports**: Button, Input, Label, Check, Search, ChevronRight, Badge, ChevronsUpDown from shadcn/ui, and Popover, PopoverContent, PopoverTrigger, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList
+- **Components**: Uses Popover with PopoverTrigger and PopoverContent containing Command, CommandInput, CommandList, CommandItem, CommandGroup, and CommandEmpty for client selection
+- Filters backend API calls to only fetch users with "Client" profile type
+- Properly handles client selection from the command list with search and filtering
+- Uses combobox pattern with visual indicator (ChevronsUpDown)
+
+### State Management
+
+#### useReparationStore (lib/store.ts)
+- Manages transient data during the wizard flow
+- Uses zustand for state management
+- **State Properties**:
+  - `deviceType: string` - Selected device type slug
+  - `brand: string` - Selected brand ID (string)
+  - `model: string` - Selected model ID (string)
+  - `issues: string[]` - Array of selected issue names
+  - `description: string` - Issue description text
+  - `accessories: string` - Accessories string
+  - `password: string` - Device password/pin
+  - `depositReceived: boolean` - Deposit received status
+  - `scheduledDate: Date | null` - Scheduled repair date
+  - `clientSearch: string` - Client search query
+- **Actions**:
+  - `setDeviceType(type)` - Update device type
+  - `setBrand(brand)` - Update brand
+  - `setModel(model)` - Update model
+  - `setIssues(issues)` - Update selected issues
+  - `setDescription(description)` - Update description
+  - `setAccessories(accessories)` - Update accessories
+  - `setPassword(password)` - Update password
+  - `setDepositReceived(received)` - Update deposit status
+  - `setScheduledDate(date)` - Update scheduled date
+  - `setClientSearch(search)` - Update client search
+  - `reset()` - Clear all state
+
+#### useAddReparationStore (store/addReparationStore.ts)
+- Manages the form submission process
+- Uses zustand with devtools middleware
+- **State Properties**:
+  - `formData: RepairFormData` - Complete repair form data
+  - `currentStep: number` - Current wizard step (1-3)
+- **FormData Structure**:
+  - `deviceType: number | null` - Device type ID
+  - `brand: number | null` - Brand ID
+  - `model: number | null` - Model ID
+  - `issues: string[]` - Selected issue names
+  - `issueDescription: string` - Detailed issue description
+  - `accessories: string[]` - Accessories array
+  - `password: string` - Device password
+  - `depositStatus: DepositStatus` - Deposit status ('deposited' | 'scheduled')
+  - `client: Client | null` - Selected existing client
+  - `newClient: { firstName, lastName, phone, email }` - New client data
+  - `totalPrice: number` - Total repair price
+  - `scheduledDate?: Date` - Optional scheduled date
+- **Actions**:
+  - `setFormData(data)` - Update form data (partial updates)
+  - `setStep(step)` - Update current step
+  - `resetForm()` - Reset entire form to initial state
+  - `nextStep()` - Move to next step
+  - `prevStep()` - Move to previous step
+  - `submitForm()` - Submit repair to backend with client creation if needed
+
+### API Client & Hooks
+
+#### API Client (lib/api/client.ts)
+- Axios-based HTTP client with base URL from environment
+- Interceptors for request/response handling
+- Automatic token refresh on 401 responses
+- Cookie-based authentication (not token-based)
+- Base URL: `http://localhost:8000/api` or configured via NEXT_PUBLIC_API_BASE_URL
+
+#### useDeviceTypes Hook
+- **Endpoint**: GET `/tech/device-types/`
+- **Response**: Paginated device types with slugs and names
+- **Caching**: Query key `["device-types"]`
+- **Return**: Query object with data, loading, error states
+
+#### useBrands Hook
+- **Endpoint**: GET `/tech/brands/?device_type={id}`
+- **Parameter**: Optional deviceTypeId for filtering
+- **Response**: Paginated brands filtered by device type
+- **Caching**: Query key `["brands", deviceTypeId]`
+- **Conditional**: Only fetches if deviceTypeId is provided
+
+#### useProductModels Hook
+- **Endpoint**: GET `/tech/product-models/?brand={id}`
+- **Parameter**: Optional brandId for filtering
+- **Response**: Paginated product models filtered by brand
+- **Caching**: Query key `["product-models", brandId]`
+- **Conditional**: Only fetches if brandId is provided via `enabled: !!brandId`
+
+#### useCommonIssues Hook
+- **Endpoint**: GET `/repairs/issues/?device_types={slug}`
+- **Parameter**: Optional deviceTypeId slug for filtering
+- **Response**: Array of issues for the device type
+- **Caching**: Query key `["common-issues", deviceTypeId]`
+- **Conditional**: Only fetches if deviceTypeId is provided
+
+#### useClients Hook
+- **Endpoint**: GET `/api/users/`
+- **Parameters**: Optional page, search, and profileType (mapped to role_name for backend)
+- **Response**: Paginated clients with user details
+- **Caching**: Query key `["clients", page, search, profileType]`
+- **Placeholder Data**: Uses keepPreviousData
+- **Filtering**: Backend filtering by role_name to fetch only specific user types (e.g., "Client")
+
+### Data Types & Interfaces (types/)
+
+#### DeviceType Interface
+```typescript
+interface DeviceType {
+  id: number;
+  name: string;
+  slug: string; // URL-friendly identifier
+  description: string;
+  icon: string | null;
+  domain: "COMPUTERS" | "PHONES"; // Domain classification
+}
+```
+
+#### Brand Interface
+```typescript
+interface Brand {
+  id: number;
+  name: string;
+}
+```
+
+#### ProductModel Interface
+```typescript
+interface ProductModel {
+  id: number;
+  name: string;
+  brand: number; // Brand ID
+  series: number; // Series ID
+}
+```
+
+#### Issue Interface
+```typescript
+interface Issue {
+  id: string;
+  name: string;
+  deviceTypes: DeviceType[]; // Available on frontend
+  requiresPart?: boolean;
+  basePrice: number;
+}
+```
+
+#### Client/User Interface
+```typescript
+interface Client extends User {
+  id: number;
+  pk: number; // Primary key alias
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  profile: Profile;
+}
+
+interface Profile {
+  id: number;
+  type: "Client" | "Staff" | "Admin"; // Profile type indicating user role
+  phone_number: string;
+  address: string;
+  date_of_birth: string | null;
+  profile_picture: string | null;
+}
+```
+
+#### Backend User & Profile Models
+- **User Model**: Extends Django's AbstractUser with basic user fields
+- **Profile Model**: One-to-one relationship with User model with the following fields:
+  - `user: OneToOneField` - Link to User model
+  - `phone_number: CharField` - Phone number (nullable)
+  - `address: TextField` - Address (nullable)
+  - `date_of_birth: DateField` - Date of birth (nullable)
+  - `profile_picture: ImageField` - Profile picture (nullable)
+  - `qr_code: ImageField` - QR code (nullable)
+  - `type: CharField` - User type with choices: "Client", "Staff", "Admin" (default: "Admin")
+- **Signals**: Automatically creates Profile when User is created via post_save signal
+- **User Filtering**: UserViewSet supports filtering by role_name parameter to fetch only specific user types (e.g., "Client", "Staff", "Admin")
+
+#### Repair Interface
+```typescript
+interface Repair {
+  id: number;
+  uid: string; // Unique identifier
+  date: string; // Repair creation date
+  client: User; // Client reference
+  product_model: number | null; // Product model ID
+  description: string; // Issue description
+  password?: string; // Device password
+  price: string; // Repair price
+  card_payment: string; // Card payment amount
+  cash_payment: string; // Cash payment amount
+  comment?: string; // Additional comments
+  device_photo?: string; // Device photo URL
+  file?: string; // Additional file URL
+  created_at: string; // Creation timestamp
+  updated_at: string; // Update timestamp
+  status?: RepairStatus; // Repair status
+  // Additional frontend fields (not in backend model)
+  scheduledDate?: Date;
+  accessories?: string[];
+  issueDescription?: string;
+  deviceType?: DeviceType;
+  brand?: string;
+  model?: string;
+  issues?: string[];
+  totalCost?: number;
+}
+```
+
+## Backend Architecture
+
+### Directory Structure
+```
+backend/
+└── apps/
+    ├── repairs/
+    │   ├── models/
+    │   │   ├── repair.py
+    │   │   └── issue.py
+    │   ├── serializers/
+    │   │   ├── repair_serializer.py
+    │   │   └── issue.py
+    │   ├── views/
+    │   │   ├── repair_viewset.py
+    │   │   └── issue.py
+    │   └── urls.py
+    └── tech/
+        ├── models/
+        │   ├── device_type.py
+        │   ├── brand.py
+        │   ├── product_model.py
+        │   ├── series.py
+        │   └── product.py
+        ├── serializers/
+        │   ├── device_type.py
+        │   ├── brand.py
+        │   └── product_model.py
+        ├── views/
+        │   ├── device_type.py
+        │   ├── brand.py
+        │   └── product_model.py
+        └── urls.py
+```
+
+### Core Models
+
+#### Repair Model (repairs/models/repair.py)
+- Main model representing a repair order
+- **Fields**:
+  - `uid: CharField` - Unique identifier for repairs
+  - `date: DateField` - Repair creation date (date repair was registered)
+  - `scheduled_date: DateField` - Scheduled date for the repair (nullable)
+  - `client: ForeignKey` - Link to user model (settings.AUTH_USER_MODEL)
+  - `status: CharField` - Repair status with choices: "saisie", "en-cours", "prete", "en-attente
+  - `product_model: ForeignKey` - Link to ProductModel (null if device type only)
+  - `description: TextField` - Description of the breakdown
+  - `password: CharField` - Device password/pin (nullable)
+  - `price: DecimalField` - Repair price (default 0.00)
+  - `card_payment: DecimalField` - Card payment amount (default 0.00)
+  - `cash_payment: DecimalField` - Cash payment amount (default 0.00)
+  - `comment: TextField` - Additional comment (nullable)
+  - `device_photo: ImageField` - Device photo (nullable)
+  - `file: FileField` - Attached file (nullable)
+  - `issues: ManyToManyField` - Link to multiple Issue models
+  - `created_at: DateTimeField` - Auto creation timestamp
+  - `updated_at: DateTimeField` - Auto update timestamp
+- **Relationships**: One-to-many with User, Many-to-many with Issue, Many-to-one with ProductModel
+- **Meta**: Orders by date and client, unique constraint on UID
+
+#### Issue Model (repairs/models/issue.py)
+- Represents specific repair issues
+- **Fields**:
+  - `name: CharField` - Issue name
+  - `device_types: ManyToManyField` - Available device types for this issue
+  - `requires_part: BooleanField` - Whether part replacement is required
+  - `base_price: DecimalField` - Base price for this issue
+  - `created_at: DateTimeField` - Auto creation timestamp
+  - `updated_at: DateTimeField` - Auto update timestamp
+- **Relationships**: Many-to-many with DeviceType
+
+#### DeviceType Model (tech/models/device_type.py)
+- Defines device categories
+- **Fields**:
+  - `name: CharField` - Device type name
+  - `slug: SlugField` - URL-friendly identifier
+  - `description: TextField` - Description of the device type
+  - `icon: CharField` - Icon name (nullable)
+  - `is_active: BooleanField` - Whether the device type is active
+  - `domain: CharField` - Domain classification: "COMPUTERS" or "PHONES"
+  - `created_at: DateTimeField` - Auto creation timestamp
+  - `updated_at: DateTimeField` - Auto update timestamp
+- **Constraints**: Unique name and slug
+- **Relationships**: Many-to-many with Issue, One-to-many with Series
+
+#### Brand Model (tech/models/brand.py)
+- Represents manufacturers
+- **Fields**:
+  - `name: CharField` - Brand name (unique)
+  - `created_at: DateTimeField` - Auto creation timestamp
+  - `updated_at: DateTimeField` - Auto update timestamp
+- **Constraints**: Unique name
+- **Relationships**: One-to-many with ProductModel and Series
+
+#### ProductModel Model (tech/models/product_model.py)
+- Specific product models (iPhone 14, Galaxy S21, etc.)
+- **Fields**:
+  - `name: CharField` - Model name
+  - `brand: ForeignKey` - Link to Brand
+  - `series: ForeignKey` - Link to Series (nullable)
+  - `created_at: DateTimeField` - Auto creation timestamp
+  - `updated_at: DateTimeField` - Auto update timestamp
+- **Constraints**: Unique together (brand, name)
+- **Relationships**: One-to-many with Product, Many-to-many with Issue (through Repair.issues)
+
+### Serializers
+
+#### RepairSerializer (repairs/serializers/repair_serializer.py)
+- **Fields**: Complete field mapping including nested serialization
+- **Read-only fields**: client, product_model, issues, brand, model, deviceType
+- **Write-only fields**: client_id, product_model_id, issue_ids
+- **Special field mappings**: scheduledDate (source: scheduled_date)
+- **Computed fields**: totalCost (source: price), status
+- **Nested serializers**: AccountUserDetailsSerializer, ProductModelSerializer, IssueSerializer
+
+#### IssueSerializer (repairs/serializers/issue.py)
+- Standard ModelSerializer with all fields
+
+#### DeviceTypeSerializer (tech/serializers/device_type.py)
+- Standard ModelSerializer with all fields
+
+#### BrandSerializer (tech/serializers/brand.py)
+- Standard ModelSerializer with all fields
+
+#### ProductModelSerializer (tech/serializers/product_model.py)
+- Standard ModelSerializer with all fields
+
+### Views & Endpoints
+
+#### RepairViewSet (repairs/views/repair_viewset.py)
+- Standard ModelViewSet for Repair model
+- Provides: list, create, retrieve, update, delete operations
+- **Serializer**: RepairSerializer
+
+#### IssueViewSet with Filtering (repairs/views/issue.py)
+- ModelViewSet with custom filtering capabilities
+- **FilterSet**: IssueFilter with device_types filtering
+- **Search**: By issue name
+- **Custom Filter**: Filter by device_types slug method
+- **Serializer**: IssueSerializer
+
+#### DeviceTypeViewSet (tech/views/device_type.py)
+- Standard ModelViewSet for DeviceType model
+- **Serializer**: DeviceTypeSerializer
+
+#### BrandViewSet with Filtering (tech/views/brand.py)
+- ModelViewSet with device type filtering
+- **FilterSet**: BrandFilter with device_type filtering method
+- **Search**: By brand name
+- **Custom Filter**: Filter brands by device type ID
+- **Serializer**: BrandSerializer
+
+#### ProductModelViewSet with Filtering (tech/views/product_model.py)
+- ModelViewSet with brand filtering
+- **FilterSet**: Filters by brand ID
+- **Serializer**: ProductModelSerializer
+
+### URL Configuration
+
+#### Main URL Configuration (conf/urls.py)
+```
+/api/tech/ -> apps.tech.urls
+/api/repairs/ -> apps.repairs.urls
+```
+
+#### Tech App URLs (tech/urls.py) - Router endpoints:
+- `/api/tech/products/` - ProductViewSet
+- `/api/tech/brands/` - BrandViewSet
+- `/api/tech/product-models/` - ProductModelViewSet
+- `/api/tech/locations/` - LocationViewSet
+- `/api/tech/suppliers/` - SupplierViewSet
+- `/api/tech/stock-items/` - StockItemViewSet
+- `/api/tech/store-orders/` - StoreOrderViewSet
+- `/api/tech/device-types/` - DeviceTypeViewSet
+
+#### Repairs App URLs (repairs/urls.py) - Router endpoints:
+- `/api/repairs/repairs/` - RepairViewSet
+- `/api/repairs/issues/` - IssueViewSet
+
+## API Endpoints Used by Frontend
+
+### GET Endpoints (Tech App)
+- `GET /api/tech/device-types/` - List all device types
+- `GET /api/tech/brands/?device_type={id}` - Filtered brands by device type ID
+- `GET /api/tech/product-models/?brand={id}` - Filtered models by brand ID
+
+### GET Endpoints (Repairs App)
+- `GET /api/repairs/repairs/` - List all repairs
+- `GET /api/repairs/issues/?device_types={slug}` - Filtered issues by device type slug
+
+### POST Endpoints
+- `POST /api/repairs/repairs/` - Create new repair with client_id, product_model_id, etc.
+- `POST /api/accounts/users/` - Create new user/client when needed
+
+### Additional Backend Endpoints (not directly used but related)
+- `GET /api/accounts/users/` - List users with search capability
+
+## Key Features
+
+### Multi-Step Wizard
+- Three-step process: Device → Issues → Client
+- Persistent state across steps using Zustand stores
+- Visual progress indicators and summary sidebar
+- Smart routing with automatic redirects
+
+### Dynamic Content Loading
+- Device types → Brands → Models hierarchical loading
+- Common issues filtered by selected device type
+- Client search with real-time filtering
+- Loading states with visual feedback using shadcn/ui components
+
+### Data Validation
+- Frontend validation ensuring required fields are filled  
+- Backend validation with Django model constraints
+- Proper error handling and display with loading indicators
+- Type safety with TypeScript interfaces
+
+### Client Management
+- Search existing clients
+- Create new clients when needed during repair submission
+- Automatic user profile creation via Django signals
+- Client selection validation
+
+### Responsive Design
+- Uses shadcn/ui component library
+- Responsive grid layouts with Tailwind CSS
+- Mobile-friendly form controls and navigation
+
+## Technical Considerations
+
+### Frontend Performance
+- React Query (TanStack Query) for efficient API caching
+- Conditional API calls with enabled flag
+- Placeholder data to maintain UI state
+- Loading states to improve UX
+
+### Frontend Architecture
+- Next.js App Router with layout system
+- Client-side state management with Zustand
+- API calls through custom hooks with proper typing
+- Component-based architecture with separation of concerns
+
+### Backend Architecture
+- Django REST Framework API with ViewSets
+- Proper relationships and constraints
+- Filtering and search capabilities using django-filter
+- File upload support for repair attachments
+- Consistent naming and structure across apps
+
+### Security
+- Cookie-based authentication (not token-based)
+- CSRF protection handled automatically by Django
+- Proper validation at both frontend and backend levels
+
+## Integration Points
+
+The frontend and backend are integrated through:
+1. REST API calls using Axios with proper error handling
+2. Consistent data mapping between frontend state and backend models
+3. URL-friendly slugs and primary keys for efficient lookups
+4. Validation at both frontend and backend levels
+5. Proper error handling and user feedback mechanisms
+6. Type safety with shared TypeScript interfaces
+
+## Form Submission Flow
+
+1. User completes all three steps in the wizard
+2. ClientStep calls useAddReparationStore.submitForm() after syncing data from useReparationStore:
+   - Maps issue names to IDs using the useCommonIssues hook
+   - Converts device type slug to numeric ID using device types lookup
+   - Formats accessories from string to array
+   - Converts date formats as needed
+3. submitForm() checks for existing client:
+   - If no existing client but has new client data, creates new user via POST /api/accounts/users/
+   - Uses the client (existing or new) for repair creation
+4. Creates unique repair UID (REP + timestamp)
+5. Makes POST /api/repairs/repairs/ with complete repair data including issue_ids and scheduled_date
+6. On success, invalidates query cache for ["repairs", "clients"] to refresh data
+7. Redirects to '/calendrier' and resets form state
+
+## Calendar Integration
+
+### Calendar Page Implementation
+- **Layout**: Uses sidebar layout for repair details (same as repairs page) instead of modal sheet
+- **Data**: Fetches real repair data using useRepairs hook instead of mock data
+- **Filtering**: Shows only repairs with scheduled dates
+- **Components**: Uses RepairDetails component directly in a right sidebar
+- **Actions**: Supports status changes, scheduling, payment processing, and recovery marking
+- **UI Pattern**: Consistent with repairs page for better user experience
+
+### Scheduled Date Handling
+- **Backend Model**: Added scheduled_date field to Repair model (nullable DateField)
+- **Serializer**: Maps frontend scheduledDate to backend scheduled_date field
+- **Data Flow**: Scheduled date from useReparationStore is properly synced to useAddReparationStore
+- **Format**: Dates are formatted to YYYY-MM-DD ISO string format
+- **Test Data**: generate_test_data.py includes scheduled dates for ~30% of repairs
+
+## Client Management Enhancements
+
+### Profile Type Filtering
+- **API**: useClients hook supports profileType parameter to filter users by role
+- **Backend**: Users endpoint supports role_name filtering to fetch specific user types
+- **Frontend**: Only "Client" profile type users are shown in selection
+- **Default**: "Client" profile type is selected in useClients hook call
+
+### Command Component Implementation
+- **Pattern**: Uses shadcn Popover + Command pattern (similar to device/brand/model selection)
+- **Components**: Popover, PopoverTrigger, PopoverContent with nested Command, CommandInput, CommandList, CommandItem, CommandGroup
+- **UI**: Provides search functionality with dropdown-like behavior
+- **Accessibility**: Includes ChevronsUpDown indicator for combobox pattern
+
+## Data Synchronization Between Stores
+
+### Store Integration
+- **useReparationStore**: Temporary data collection during form steps (deviceType, brand, model as slugs/IDs, issues as names)
+- **useAddReparationStore**: Final submission store (expects numeric IDs for backend)
+- **Sync Process**: Client-step maps data between stores before form submission
+  - Maps device type slug to numeric ID using device types lookup
+  - Maps issue names to IDs using useCommonIssues hook data
+  - Converts string IDs to numbers using parseInt
+  - Formats accessories from string to array
+
+## Cache Invalidation
+
+### React Query Integration
+- **Component**: useQueryClient hook used in client-step for cache management
+- **Invalidation**: After successful repair creation, invalidates ["repairs"] and ["clients"] query keys
+- **Effect**: Ensures calendar and other pages show fresh data without requiring page refresh
+- **User Experience**: New repairs appear immediately in calendar view
+
+## Database Migration Requirements
+
+### Required Migrations
+- **Model Change**: New scheduled_date field added to Repair model requires database migration
+- **Command**: `python manage.py makemigrations` followed by `python manage.py migrate` needed to update database schema
+- **Compatibility**: Without migration, the field will cause 400 validation errors when saving repairs
+- **Test Data**: Updated generate_test_data.py to include scheduled dates in new repair generation

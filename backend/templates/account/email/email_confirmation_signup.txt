@@ -1,0 +1,3 @@
+{% load account %}
+
+Your verification code is: {{ key }}
