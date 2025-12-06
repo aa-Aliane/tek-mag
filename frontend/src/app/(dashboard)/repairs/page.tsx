@@ -17,6 +17,7 @@ import {
 import { useUserRole } from "@/components/layout/providers";
 import { SharedHeader } from '@/components/shared/shared-header';
 import { toast } from "sonner";
+import { RepairHighlightStats } from "@/components/features/repairs/RepairHighlightStats";
 
 export default function RepairsPage() {
   const router = useRouter();
@@ -167,14 +168,6 @@ export default function RepairsPage() {
     );
   };
 
-  const stats = {
-    total: repairs.length,
-    saisie: repairs.filter((r) => r.status === "saisie").length,
-    enCours: repairs.filter((r) => r.status === "en-cours").length,
-    prete: repairs.filter((r) => r.status === "prete").length,
-    enAttente: repairs.filter((r) => r.status === "en-attente").length,
-  };
-
   return (
     <div className="h-full flex flex-col">
       <SharedHeader
@@ -193,46 +186,7 @@ export default function RepairsPage() {
       </SharedHeader>
 
       <div className="p-4 sm:p-8 flex-1 flex flex-col gap-4 sm:gap-6 min-h-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold">{stats.total}</div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              Total
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">
-              {stats.saisie}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              Saisies
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-yellow-600">
-              {stats.enCours}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              En cours
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-green-600">
-              {stats.prete}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              Prêtes
-            </div>
-          </div>
-          <div className="rounded-lg border border-border bg-card p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-orange-600">
-              {stats.enAttente}
-            </div>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              En attente
-            </div>
-          </div>
-        </div>
+        <RepairHighlightStats className="mb-4 sm:mb-6" />
 
         <div className="flex gap-6 flex-1 min-h-0">
           <div className={`flex-1 min-w-0 transition-all duration-300`}>

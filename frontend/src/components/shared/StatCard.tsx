@@ -1,6 +1,6 @@
 // src/components/shared/StatCard.tsx
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface StatCardProps {
@@ -12,6 +12,7 @@ interface StatCardProps {
     value: string;
     positive: boolean;
   };
+  color?: 'default' | 'primary' | 'warning' | 'destructive' | 'success' | 'muted';
   className?: string;
 }
 
@@ -21,22 +22,39 @@ export const StatCard: React.FC<StatCardProps> = ({
   description,
   icon,
   trend,
+  color = 'default',
   className
 }) => {
+  const colorClasses = {
+    default: 'text-foreground',
+    primary: 'text-primary',
+    warning: 'text-warning',
+    destructive: 'text-destructive',
+    success: 'text-green-600',
+    muted: 'text-muted-foreground'
+  };
+
   return (
-    <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon && <div className="text-2xl">{icon}</div>}
+    <Card className={cn("overflow-hidden h-full", className)}>
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
+            {title}
+          </CardTitle>
+          {icon && <div>{icon}</div>}
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className={cn("text-xl sm:text-2xl font-bold", colorClasses[color])}>
+          {value}
+        </div>
         {description && (
           <p className="text-xs text-muted-foreground mt-1">{description}</p>
         )}
         {trend && (
-          <p className={`text-xs mt-1 ${trend.positive ? 'text-green-500' : 'text-red-500'}`}>
-            {trend.value} {trend.positive ? '↑' : '↓'}
+          <p className={`flex items-center text-xs mt-1 ${trend.positive ? 'text-green-500' : 'text-red-500'}`}>
+            <span>{trend.value}</span>
+            <span className="ml-1">{trend.positive ? '↑' : '↓'}</span>
           </p>
         )}
       </CardContent>
