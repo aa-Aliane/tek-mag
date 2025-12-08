@@ -13,6 +13,7 @@ import {
   type RepairStatus,
   type RepairOutcome,
   type PaymentMethod,
+  type DeviceType,
 } from "@/types";
 import { useUserRole } from "@/components/layout/providers";
 import { SharedHeader } from '@/components/shared/shared-header';
@@ -23,8 +24,14 @@ export default function RepairsPage() {
   const router = useRouter();
   const queryClient = useQueryClient(); // Add queryClient
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const { data, isLoading, error } = useRepairs(1, statusFilter === "all" ? undefined : statusFilter);
+  const [statusFilter, setStatusFilter] = useState<RepairStatus | "all">("all");
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceType | "all">("all");
+  const { data, isLoading, error } = useRepairs(
+    1,
+    statusFilter === "all" ? undefined : statusFilter,
+    undefined, // client filter
+    deviceTypeFilter === "all" ? undefined : deviceTypeFilter
+  );
   const updateRepair = useUpdateRepair();
   const repairs = data?.results || [];
 
@@ -111,7 +118,7 @@ export default function RepairsPage() {
   ) => {
     const currentCard = Number(repair.card_payment || 0);
     const currentCash = Number(repair.cash_payment || 0);
-    
+
     const updateData: Partial<Repair> = {};
     if (method === "card") {
       updateData.card_payment = String(currentCard + amount);
@@ -194,6 +201,12 @@ export default function RepairsPage() {
               repairs={repairs}
               onViewDetails={handleViewDetails}
               onStatusChange={handleQuickStatusChange}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              deviceTypeFilter={deviceTypeFilter}
+              setDeviceTypeFilter={setDeviceTypeFilter}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
             />
           </div>
 
