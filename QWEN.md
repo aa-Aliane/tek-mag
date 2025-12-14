@@ -69,6 +69,23 @@ The frontend uses the Next.js App Router:
 * **Client Management**: Specialized data loading for clients.
 * **Search**: Full-text search capabilities using Elasticsearch.
 
+## Store Management Implementation Status
+
+### Current Status
+* **Backend**: Complete API infrastructure exists (StoreOrder, Product, Supplier, StockItem models with corresponding ViewSets and serializers)
+* **Frontend**: Interface only allows viewing existing orders; critical functionality to create new orders is missing
+
+### Known Issues
+* **Empty Components**: `command-form.tsx` was empty but has now been implemented for order creation
+* **Missing API Services**: `commands.ts` and `products.ts` service files were empty but are now implemented
+* **No Order Creation**: Users can now create new orders via the command form
+* **No Repair Integration**: Now implemented with repair selection in the command form
+* **No Command Detail View**: The detail view is implemented and connected to dynamic route
+* **Missing New Order Route**: Need to create `/commandes/new` route for creating new orders
+* **Inconsistent UI Patterns**: Now aligned with repairs module patterns (side panel details view, consistent filtering, etc.)
+* **Incomplete row interaction**: Now fixed - clicking on a row opens the details view
+* **Missing shadcn/ui components**: Now properly implemented with Input and Select components
+
 ## Backend Models Status
 
 **Note**: The gap_analysis.md document is OUTDATED. All models and APIs mentioned below are actually IMPLEMENTED in the backend:

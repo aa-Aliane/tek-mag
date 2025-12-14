@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { type Repair, type RepairStatus, type DeviceType } from "@/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { Repair } from "@/types"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Search } from "lucide-react"
@@ -21,6 +20,12 @@ interface RepairsTableProps {
   repairs: Repair[]
   onViewDetails?: (repair: Repair) => void
   onStatusChange?: (repair: Repair, newStatus: string, comment: string, notifyClient: boolean) => void
+  statusFilter: RepairStatus | "all"
+  setStatusFilter: (value: RepairStatus | "all") => void
+  deviceTypeFilter: DeviceType | "all"
+  setDeviceTypeFilter: (value: DeviceType | "all") => void
+  searchTerm: string
+  setSearchTerm: (value: string) => void
 }
 
 const statusConfig = {
@@ -49,27 +54,19 @@ const getStatusOptions = (currentStatus: string) => {
   ).map(([status, config]) => ({ status, ...config }));
 };
 
-export function RepairsTable({ repairs, onViewDetails, onStatusChange }: RepairsTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<string>("all")
-
-  const filteredRepairs = repairs.filter((repair) => {
-    const clientName = `${repair.client.first_name} ${repair.client.last_name}`.toLowerCase();
-    const clientPhone = repair.client.profile?.phone_number || "";
-    
-    const matchesSearch =
-      clientName.includes(searchTerm.toLowerCase()) ||
-      clientPhone.includes(searchTerm) ||
-      String(repair.id).includes(searchTerm) ||
-      (repair.brand?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (repair.model?.toLowerCase() || "").includes(searchTerm.toLowerCase());
-
-    const matchesStatus = statusFilter === "all" || repair.status === statusFilter
-    const matchesDeviceType = deviceTypeFilter === "all" || repair.deviceType === deviceTypeFilter
-
-    return matchesSearch && matchesStatus && matchesDeviceType
-  })
+export function RepairsTable({
+  repairs,
+  onViewDetails,
+  onStatusChange,
+  statusFilter,
+  setStatusFilter,
+  deviceTypeFilter,
+  setDeviceTypeFilter,
+  searchTerm,
+  setSearchTerm
+}: RepairsTableProps) {
+  // No local filtering needed - all repairs are already filtered by parent component
+  const filteredRepairs = repairs;
 
   return (
     <div className="space-y-4">
@@ -83,7 +80,7 @@ export function RepairsTable({ repairs, onViewDetails, onStatusChange }: Repairs
             className="pl-10"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(value: RepairStatus | "all") => setStatusFilter(value)}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
@@ -95,7 +92,7 @@ export function RepairsTable({ repairs, onViewDetails, onStatusChange }: Repairs
             <SelectItem value="en-attente">En attente</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={deviceTypeFilter} onValueChange={setDeviceTypeFilter}>
+        <Select value={deviceTypeFilter} onValueChange={(value: DeviceType | "all") => setDeviceTypeFilter(value)}>
           <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -145,8 +142,8 @@ export function RepairsTable({ repairs, onViewDetails, onStatusChange }: Repairs
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRepairs.map((repair) => (
-                <tr 
-                  key={repair.id} 
+                <tr
+                  key={repair.id}
                   className="hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={() => onViewDetails?.(repair)}
                 >

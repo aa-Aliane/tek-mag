@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import api from "@/lib/api/client";
-import { type Repair, type PaginatedResponse } from "@/types";
+import { type Repair, type PaginatedResponse, type DeviceType } from "@/types";
 
 // Fetch all repairs
-const fetchRepairs = async (page = 1, status?: string, client?: number): Promise<PaginatedResponse<Repair>> => {
-  const params = { page, status, client };
+const fetchRepairs = async (page = 1, status?: string, client?: number, deviceType?: DeviceType): Promise<PaginatedResponse<Repair>> => {
+  const params = { page, status, client, device_type: deviceType };
   const response = await api.get("/repairs/repairs/", { params });
   return response.data;
 };
@@ -27,10 +27,10 @@ const updateRepair = async ({ id, data }: { id: string; data: Partial<Repair> })
   return response.data;
 };
 
-export const useRepairs = (page = 1, status?: string, client?: number) => {
+export const useRepairs = (page = 1, status?: string, client?: number, deviceType?: DeviceType) => {
   return useQuery<PaginatedResponse<Repair>, Error>({
-    queryKey: ["repairs", page, status, client],
-    queryFn: () => fetchRepairs(page, status, client),
+    queryKey: ["repairs", page, status, client, deviceType],
+    queryFn: () => fetchRepairs(page, status, client, deviceType),
     placeholderData: keepPreviousData,
   });
 };
