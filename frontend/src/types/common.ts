@@ -171,10 +171,11 @@ export interface StoreOrder {
   ordered_by: number;
   created_at: string;
   estimated_delivery_date: string;
-  actual_delivery_date: string;
+  actual_delivery_date?: string;
   total_price: string;
   down_payment: string;
-  delivery_status: string;
+  status?: string; // Backend field (fallback)
+  delivery_status: string; // Primary field from serializer
   order_status: string;
   tracking_number: string;
   reference: string;

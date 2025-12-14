@@ -11,9 +11,9 @@ export const OrderHighlightStats: React.FC<OrderHighlightStatsProps> = ({ classN
   const orders = data?.results || [];
 
   // Calculate order metrics
-  const pendingOrders = orders.filter((o) => o.status === 'pending').length;
-  const orderedOrders = orders.filter((o) => o.status === 'ordered').length;
-  const receivedOrders = orders.filter((o) => o.status === 'received').length;
+  const pendingOrders = orders.filter((o) => o.delivery_status === 'pending').length;
+  const orderedOrders = orders.filter((o) => o.delivery_status === 'ordered').length;
+  const receivedOrders = orders.filter((o) => o.delivery_status === 'received').length;
 
   // Calculate average time to receive an order (in days)
   // For now, using a mock calculation - in real system this would use date comparison
