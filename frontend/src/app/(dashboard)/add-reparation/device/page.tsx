@@ -89,8 +89,8 @@ export default function AddReparationDevicePage() {
     error: modelsError,
   } = useProductModels(brand, selectedDeviceTypeId);
 
-  const brands = brandsData?.results || [];
-  const models = modelsData?.results || [];
+  const brands = brandsData || [];
+  const models = modelsData || [];
 
   // Brands are already filtered by device type from the backend
   const filteredBrands = brands;
