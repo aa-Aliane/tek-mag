@@ -27,15 +27,22 @@ import { useProductModels } from "@/hooks/use-product-models";
 
 // Helper function to get device icon
 const getDeviceIcon = (slug: string) => {
-  switch(slug) {
-    case 'smartphone':
-      return <Smartphone className="h-8 w-8" />;
-    case 'tablet':
-      return <Tablet className="h-8 w-8" />;
-    case 'computer':
-      return <Laptop className="h-8 w-8" />;
-    default:
-      return <Smartphone className="h-8 w-8" />;
+  if (slug.includes('smartphone') || slug.includes('phone')) {
+    return <Smartphone className="h-8 w-8" />;
+  } else if (slug.includes('tablet')) {
+    return <Tablet className="h-8 w-8" />;
+  } else if (slug.includes('laptop') || slug.includes('computer') || slug.includes('pc')) {
+    return <Laptop className="h-8 w-8" />;
+  } else if (slug.includes('desktop')) {
+    return <Monitor className="h-8 w-8" />;
+  } else if (slug.includes('watch')) {
+    return <Watch className="h-8 w-8" />;
+  } else if (slug.includes('console')) {
+    return <Gamepad2 className="h-8 w-8" />;
+  } else if (slug.includes('other')) {
+    return <Smartphone className="h-8 w-8" />; // Using smartphone as default for 'other'
+  } else {
+    return <Smartphone className="h-8 w-8" />;
   }
 };
 
@@ -155,7 +162,7 @@ export default function AddReparationDevicePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="flex flex-wrap justify-center gap-3">
           {deviceTypes.map((type) => (
             <button
               key={type.id}
@@ -165,16 +172,14 @@ export default function AddReparationDevicePage() {
                 setModel("");
               }}
               className={cn(
-                "flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-all hover:border-primary/50",
+                "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all hover:border-primary/50",
                 deviceType === type.slug // Compare with slug
                   ? "border-primary bg-primary/5"
                   : "border-border bg-card",
               )}
+              title={type.name} // Tooltip with device type name
             >
               {getDeviceIcon(type.slug)}
-              <span className="text-sm font-medium text-center">
-                {type.name}
-              </span>
             </button>
           ))}
         </div>

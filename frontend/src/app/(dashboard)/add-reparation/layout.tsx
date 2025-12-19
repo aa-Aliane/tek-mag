@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, createElement } from "react";
 import { usePathname } from "next/navigation";
 import { useReparationStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -12,14 +12,25 @@ import { useBrands } from "@/hooks/use-brands";
 import { useProductModels } from "@/hooks/use-product-models";
 import { cn } from "@/lib/utils";
 
-// Icon mapping for device types
-const deviceTypeIcons: Record<string, React.ComponentType<any>> = {
-  smartphone: Smartphone,
-  tablet: Tablet,
-  laptop: Laptop,
-  desktop: Monitor,
-  watch: Watch,
-  console: Gamepad2,
+// Helper function to get device icon based on slug
+const getDeviceIcon = (slug: string) => {
+  if (slug.includes('smartphone') || slug.includes('phone')) {
+    return Smartphone;
+  } else if (slug.includes('tablet')) {
+    return Tablet;
+  } else if (slug.includes('laptop') || slug.includes('computer') || slug.includes('pc')) {
+    return Laptop;
+  } else if (slug.includes('desktop')) {
+    return Monitor;
+  } else if (slug.includes('watch')) {
+    return Watch;
+  } else if (slug.includes('console')) {
+    return Gamepad2;
+  } else if (slug.includes('other')) {
+    return Smartphone; // Using smartphone as default for 'other'
+  } else {
+    return Smartphone;
+  }
 };
 
 export default function AddReparationLayout({ children }: { children: ReactNode }) {
@@ -139,7 +150,10 @@ export default function AddReparationLayout({ children }: { children: ReactNode 
                       <div className="pl-3 space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Type</span>
-                          <span className="font-medium">{deviceType}</span>
+                          <div className="flex items-center gap-2">
+                            {createElement(getDeviceIcon(deviceType), { className: "h-4 w-4" })}
+                            <span className="font-medium">{deviceType}</span>
+                          </div>
                         </div>
                         {brand && (
                           <div className="flex justify-between text-sm">
