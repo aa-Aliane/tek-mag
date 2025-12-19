@@ -41,7 +41,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("Admin superuser already exists."))
         except User.DoesNotExist:
             user = User.objects.create_superuser(
-                username="admin", email="admin@example.com", password="admin123"
+                username="admin", email="admin@example.com", password="admin"
             )
             self.stdout.write(self.style.SUCCESS("Admin superuser created."))
         return user
