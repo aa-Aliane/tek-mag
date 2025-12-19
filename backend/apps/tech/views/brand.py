@@ -23,3 +23,4 @@ class BrandViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.DjangoFilterBackend, drf_filters.SearchFilter]
     filterset_class = BrandFilter
     search_fields = ['name']
+    pagination_class = None  # Disable pagination for brands

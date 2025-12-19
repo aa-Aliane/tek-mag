@@ -24,4 +24,3 @@ class ProductModelViewSet(viewsets.ModelViewSet):
     serializer_class = ProductModelSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProductModelFilter
-    pagination_class = None  # Disable pagination
