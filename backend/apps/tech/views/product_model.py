@@ -1,22 +1,27 @@
 from rest_framework import viewsets
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend, filters
+from django_filters import FilterSet
 from ..models import ProductModel
 from ..serializers import ProductModelSerializer
-from rest_framework.pagination import PageNumberPagination
 
 
-class NoPagination(PageNumberPagination):
-    def paginate_queryset(self, queryset, request, view=None):
-        return None
+class ProductModelFilter(FilterSet):
+    brand = filters.NumberFilter(field_name='brand__id')
+    device_type = filters.NumberFilter(method='filter_by_device_type')
 
-    def get_paginated_response(self, data):
-        from rest_framework.response import Response
-        return Response(data)
+    def filter_by_device_type(self, queryset, name, value):
+        # Filter models by device type through the series relationship
+        # ProductModel -> Series -> DeviceType
+        return queryset.filter(series__device_type_id=value).distinct()
+
+    class Meta:
+        model = ProductModel
+        fields = ['brand', 'device_type']
 
 
 class ProductModelViewSet(viewsets.ModelViewSet):
     queryset = ProductModel.objects.all()
     serializer_class = ProductModelSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['brand']
+    filterset_class = ProductModelFilter
     pagination_class = None  # Disable pagination
