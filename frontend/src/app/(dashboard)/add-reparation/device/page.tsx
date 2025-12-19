@@ -72,9 +72,9 @@ export default function AddReparationDevicePage() {
   // Get device types, brands, and models from API data
   const deviceTypes = deviceTypesData?.results || [];
 
-  // Get device type ID based on the selected device type name
+  // Get device type ID based on the selected device type slug
   const selectedDeviceTypeId = deviceType
-    ? deviceTypes.find((dt) => dt.name === deviceType)?.id
+    ? deviceTypes.find((dt) => dt.slug === deviceType)?.id
     : undefined;
 
   const {
@@ -87,7 +87,7 @@ export default function AddReparationDevicePage() {
     data: modelsData,
     isLoading: isLoadingModels,
     error: modelsError,
-  } = useProductModels(brand);
+  } = useProductModels(brand, selectedDeviceTypeId);
 
   const brands = brandsData?.results || [];
   const models = modelsData?.results || [];
@@ -162,7 +162,7 @@ export default function AddReparationDevicePage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
           {deviceTypes.map((type) => (
             <button
               key={type.id}
@@ -172,14 +172,14 @@ export default function AddReparationDevicePage() {
                 setModel("");
               }}
               className={cn(
-                "flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-all hover:border-primary/50",
+                "flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:border-primary/50",
                 deviceType === type.slug // Compare with slug
                   ? "border-primary bg-primary/5"
                   : "border-border bg-card",
               )}
-              title={type.name} // Tooltip with device type name
             >
               {getDeviceIcon(type.slug)}
+              <span className="text-xs font-medium text-center">{type.name}</span>
             </button>
           ))}
         </div>
