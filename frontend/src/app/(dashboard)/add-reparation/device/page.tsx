@@ -6,7 +6,7 @@ import { useReparationStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Check, Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -24,6 +24,7 @@ import {
 import { useDeviceTypes } from "@/hooks/use-device-types";
 import { useBrands } from "@/hooks/use-brands";
 import { useProductModels } from "@/hooks/use-product-models";
+import { BrandSelection } from "@/components/features/brand-selection/BrandSelection";
 
 // Helper function to get device icon
 const getDeviceIcon = (slug: string) => {
@@ -188,79 +189,22 @@ export default function AddReparationDevicePage() {
           <div className="grid gap-4 pt-4">
             <div className="space-y-2">
               <Label>Marque</Label>
-              <Popover open={brandOpen} onOpenChange={setBrandOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={brandOpen}
-                    className="w-full justify-between"
-                    disabled={isLoadingBrands} // Disable while loading brands
-                  >
-                    {isLoadingBrands ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Chargement...
-                      </div>
-                    ) : (
-                      <>
-                        {brand
-                          ? getBrandName(brand)
-                          : "Sélectionnez une marque..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput
-                      placeholder={
-                        brand ? brand : "rechercher une marque..."
-                      }
-                    />
-                    <CommandList>
-                      {isLoadingBrands ? (
-                        <CommandItem disabled>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Chargement des marques...
-                        </CommandItem>
-                      ) : (
-                        <>
-                          <CommandEmpty>
-                            Aucune marque trouvée.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredBrands.map((b) => (
-                              <CommandItem
-                                key={b.id}
-                                value={b.id.toString()}
-                                onSelect={(currentValue) => {
-                                  // Always select the clicked brand (no toggle behavior)
-                                  const newBrandId = b.id.toString();
-                                  setBrand(newBrandId);
-                                  setModel("");
-                                  setBrandOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    brand === b.id.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {b.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </>
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              {isLoadingBrands ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Chargement des marques...</span>
+                </div>
+              ) : (
+                <BrandSelection
+                  brands={filteredBrands}
+                  selectedBrand={brand}
+                  onBrandSelect={(brandId) => {
+                    setBrand(brandId);
+                    setModel("");
+                  }}
+                  deviceTypeId={selectedDeviceTypeId}
+                />
+              )}
             </div>
 
             {brand && (
