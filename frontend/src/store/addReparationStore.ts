@@ -7,7 +7,12 @@ interface RepairFormData {
   deviceType: number | null; // Changed to number to match ID
   brand: number | null;      // Changed to number to match ID
   model: number | null;      // Changed to number to match ID
-  issues: string[];
+  repair_issue_data: {
+    issue_id: number;
+    quality_tier_id?: number;
+    custom_price?: number;
+    notes?: string;
+  }[];
   issueDescription: string;
   accessories: string[];
   password: string;
@@ -131,7 +136,7 @@ export const useAddReparationStore = create<AddReparationStore>()(
             description: formData.issueDescription || 'Réparation créée via formulaire', // Ensure description is not empty
             password: formData.password || null,
             price: formData.totalPrice || 0,
-            issue_ids: formData.issues || [], // Array of issue IDs (ensure it's an array)
+            repair_issue_data: formData.repair_issue_data || [], // Use the new structure for issues with quality tiers
             accessories: formData.accessories ? formData.accessories.join(', ') : null, // Join array into comma-separated string
             status: 'saisie', // Default status
             date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format

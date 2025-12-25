@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Search, Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check } from "lucide-react";
+import { Search, Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Brand } from "@/types";
 import { useDeviceTypes } from "@/hooks/use-device-types";
@@ -87,23 +87,27 @@ const BrandLogo = ({ brandName }: { brandName: string }) => {
   );
 };
 
-export const BrandSelection = ({ 
-  brands, 
-  selectedBrand, 
+export const BrandSelection = ({
+  brands,
+  selectedBrand,
   onBrandSelect,
   deviceTypeId
 }: BrandSelectionProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showAllBrands, setShowAllBrands] = useState(false);
-  
+  const [showSelectionView, setShowSelectionView] = useState(true); // Controls view mode
+
   // Get device type name for display
   const { data: deviceTypesData } = useDeviceTypes();
   const deviceTypes = deviceTypesData?.results || [];
   const currentDeviceType = deviceTypes.find(dt => dt.id === deviceTypeId);
 
+  // Get selected brand object to display details
+  const selectedBrandObject = brands.find(brand => brand.id === selectedBrand);
+
   // Filter brands based on search query
   const filteredBrands = useMemo(() => {
-    return brands.filter(brand => 
+    return brands.filter(brand =>
       brand.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [brands, searchQuery]);
@@ -124,6 +128,44 @@ export const BrandSelection = ({
     return { popularBrands: popular, otherBrands: other };
   }, [filteredBrands]);
 
+  // If a brand is selected and we're in selection view, show the single brand box
+  if (selectedBrand && !showSelectionView && selectedBrandObject) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium">Marque Sélectionnée</h3>
+          <Badge variant="secondary" className="text-xs">
+            {currentDeviceType ? currentDeviceType.name : "Tous"}
+          </Badge>
+        </div>
+
+        <Card className="p-4 flex items-center space-x-4 border-2 border-primary/30 bg-primary/5 transition-all hover:shadow-md">
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-white border border-border shadow-sm p-1">
+              <BrandLogo brandName={selectedBrandObject.name} />
+            </div>
+            <div>
+              <h4 className="font-semibold">{selectedBrandObject.name}</h4>
+              <p className="text-xs text-muted-foreground">Sélectionné</p>
+            </div>
+          </div>
+
+          <div className="ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSelectionView(true)}
+              className="flex items-center space-x-1"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>Changer</span>
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Popular Brands Section */}
@@ -134,13 +176,16 @@ export const BrandSelection = ({
             {currentDeviceType ? currentDeviceType.name : "Tous"}
           </Badge>
         </div>
-        
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {popularBrands.length > 0 ? (
             popularBrands.map((brand) => (
               <button
                 key={brand.id}
-                onClick={() => onBrandSelect(brand.id)}
+                onClick={() => {
+                  onBrandSelect(brand.id);
+                  setShowSelectionView(false); // Switch to single brand view after selection
+                }}
                 className={cn(
                   "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:border-primary/50 relative",
                   selectedBrand === brand.id
@@ -187,7 +232,10 @@ export const BrandSelection = ({
               {(searchQuery ? filteredBrands : otherBrands).map((brand) => (
                 <button
                   key={brand.id}
-                  onClick={() => onBrandSelect(brand.id)}
+                  onClick={() => {
+                    onBrandSelect(brand.id);
+                    setShowSelectionView(false); // Switch to single brand view after selection
+                  }}
                   className={cn(
                     "w-full px-4 py-2 text-left hover:bg-accent flex items-center justify-between",
                     selectedBrand === brand.id && "bg-primary/10"

@@ -1,9 +1,48 @@
-
-
 from django.db import models
 from django.conf import settings
 from apps.tech.models import ProductModel
 from decimal import Decimal
+from apps.repairs.models.product_quality_tier import ProductQualityTier
+
+
+class RepairIssue(models.Model):
+    """
+    Junction model to connect repairs with issues and their selected quality tiers
+    """
+    repair = models.ForeignKey('Repair', on_delete=models.CASCADE, related_name='repair_issues')
+    issue = models.ForeignKey('Issue', on_delete=models.CASCADE)
+    quality_tier = models.ForeignKey(
+        ProductQualityTier, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Selected quality tier for product-based issues"
+    )
+    custom_price = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2, 
+        null=True, 
+        blank=True,
+        help_text="Custom price if different from standard pricing"
+    )
+    notes = models.TextField(blank=True, null=True)
+    
+    def get_price(self):
+        """
+        Get the price for this issue in this repair.
+        Priority: custom_price > quality_tier.price > issue.base_price
+        """
+        if self.custom_price:
+            return self.custom_price
+        elif self.quality_tier:
+            return self.quality_tier.price
+        elif self.issue.base_price:
+            return self.issue.base_price
+        return Decimal('0.00')
+    
+    def __str__(self):
+        return f"{self.repair.uid} - {self.issue.name}"
+
 
 class Repair(models.Model):
     uid = models.CharField(max_length=255, unique=True, verbose_name="Repair UID")
@@ -42,7 +81,8 @@ class Repair(models.Model):
     device_photo = models.ImageField(upload_to="repair_photos/", blank=True, null=True, verbose_name="Device Photo")
     file = models.FileField(upload_to="repair_files/", blank=True, null=True, verbose_name="Attached File")
 
-    issues = models.ManyToManyField("repairs.Issue", blank=True, related_name="repairs", verbose_name="Issues")
+    # Changed from ManyToMany to use the new junction model
+    # issues = models.ManyToManyField("repairs.Issue", blank=True, related_name="repairs", verbose_name="Issues")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -54,3 +94,19 @@ class Repair(models.Model):
 
     def __str__(self):
         return f"Repair {self.uid} for {self.client.username}"
+    
+    def calculate_total_price(self):
+        """
+        Calculate the total price for this repair based on all associated issues
+        """
+        total = Decimal('0.00')
+        for repair_issue in self.repair_issues.all():
+            total += repair_issue.get_price()
+        return total
+    
+    def save(self, *args, **kwargs):
+        # Update the price field when saving, but only if the object already exists
+        # (related objects like repair_issues can't be accessed before the first save)
+        if self.pk:
+            self.price = self.calculate_total_price()
+        super().save(*args, **kwargs)

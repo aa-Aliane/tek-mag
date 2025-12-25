@@ -25,6 +25,7 @@ import { useDeviceTypes } from "@/hooks/use-device-types";
 import { useBrands } from "@/hooks/use-brands";
 import { useProductModels } from "@/hooks/use-product-models";
 import { BrandSelection } from "@/components/features/brand-selection/BrandSelection";
+import { ModelSelection } from "@/components/features/model-selection/ModelSelection";
 
 // Helper function to get device icon
 const getDeviceIcon = (slug: string) => {
@@ -210,77 +211,21 @@ export default function AddReparationDevicePage() {
             {brand && (
               <div className="space-y-2">
                 <Label>Modèle</Label>
-                <Popover open={modelOpen} onOpenChange={setModelOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={modelOpen}
-                      className="w-full justify-between"
-                      disabled={isLoadingModels} // Disable while loading models
-                    >
-                      {isLoadingModels ? (
-                        <div className="flex items-center">
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Chargement...
-                        </div>
-                      ) : (
-                        <>
-                          {model
-                            ? getModelName(model)
-                            : "Sélectionnez un modèle..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-full p-0"
-                    align="start"
-                  >
-                    <Command>
-                      <CommandInput placeholder="Rechercher un modèle..." />
-                      <CommandList>
-                        {isLoadingModels ? (
-                          <CommandItem disabled>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Chargement des modèles...
-                          </CommandItem>
-                        ) : (
-                          <>
-                            <CommandEmpty>
-                              Aucun modèle trouvé.
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {filteredModels.map((m) => (
-                                <CommandItem
-                                  key={m.id}
-                                  value={m.id.toString()}
-                                  onSelect={(currentValue) => {
-                                    // Always select the clicked model (no toggle behavior)
-                                    const newModelId = m.id.toString();
-                                    setModel(newModelId);
-                                    setModelOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      model === m.id.toString()
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {m.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {isLoadingModels ? (
+                  <div className="flex items-center justify-center h-24">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <span>Chargement des modèles...</span>
+                  </div>
+                ) : (
+                  <ModelSelection
+                    models={filteredModels}
+                    selectedBrand={getBrandName(brand)}
+                    selectedModel={model}
+                    onModelSelect={(modelId) => {
+                      setModel(modelId);
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>

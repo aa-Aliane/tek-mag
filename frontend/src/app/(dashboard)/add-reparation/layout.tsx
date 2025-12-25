@@ -38,7 +38,7 @@ export default function AddReparationLayout({ children }: { children: ReactNode 
     deviceType,
     brand,
     model,
-    issues,
+    selectedIssues,
     description,
     accessories,
     password,
@@ -180,21 +180,31 @@ export default function AddReparationLayout({ children }: { children: ReactNode 
                   )}
 
                   {/* Issues */}
-                  {issues.length > 0 && (
+                  {selectedIssues.length > 0 && (
                     <>
                       <div className="h-px bg-border" />
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                           <div className="h-1 w-1 rounded-full bg-primary" />
-                          PROBLÈMES ({issues.length})
+                          PROBLÈMES ({selectedIssues.length})
                         </div>
-                        <div className="pl-3 space-y-1">
-                          {issues.map((issue) => (
-                            <div
-                              key={issue}
-                              className="text-sm text-foreground"
-                            >
-                              • {issue}
+                        <div className="pl-3 space-y-2">
+                          {selectedIssues.map((selectedIssue) => (
+                            <div key={selectedIssue.issueId} className="text-sm">
+                              <div className="font-medium">• {selectedIssue.issueName}</div>
+                              {selectedIssue.categoryType === 'product_based' && selectedIssue.selectedTierId && (
+                                <div className="text-xs text-muted-foreground ml-2">
+                                  Option qualité: {selectedIssue.selectedTierId === 1 ? 'Standard' :
+                                                   selectedIssue.selectedTierId === 2 ? 'Premium' :
+                                                   selectedIssue.selectedTierId === 3 ? 'Original' :
+                                                   'Reconditionné'}
+                                </div>
+                              )}
+                              {selectedIssue.categoryType === 'service_based' && selectedIssue.notes && (
+                                <div className="text-xs text-muted-foreground ml-2">
+                                  Notes: {selectedIssue.notes}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

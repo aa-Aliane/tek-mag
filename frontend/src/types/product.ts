@@ -25,6 +25,7 @@ export interface ProductModel {
   name: string;
   brand: number; // ID
   series: number; // ID
+  is_popular?: boolean; // Optional field indicating if this is a popular model
 }
 
 export interface Product {

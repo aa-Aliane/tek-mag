@@ -56,7 +56,7 @@ class RepairFilter(django_filters.FilterSet):
 class RepairViewSet(viewsets.ModelViewSet):
     queryset = Repair.objects.select_related(
         'client', 'client__profile', 'product_model__brand', 'product_model__series__device_type'
-    ).prefetch_related('issues')
+    ).prefetch_related('repair_issues__issue', 'repair_issues__quality_tier')
     serializer_class = RepairSerializer
     filter_backends = [DjangoFilterBackend, drf_filters.SearchFilter]
     filterset_class = RepairFilter

@@ -27,6 +27,41 @@ export interface Issue {
   deviceTypes: DeviceType[]
   requiresPart?: boolean
   basePrice: number
+  categoryType: 'product_based' | 'service_based'
+  associatedProduct?: Product
+  servicePricing?: ServicePricing[]
+}
+
+export interface ProductQualityTier {
+  id: number;
+  product_id: number;
+  quality_tier: 'standard' | 'premium' | 'original' | 'refurbished';
+  price: number;
+  warranty_days: number;
+  availability_status: 'in_stock' | 'low_stock' | 'out_of_stock' | 'discontinued';
+  description_fr?: string;
+  description_en?: string;
+}
+
+export interface ServicePricing {
+  id: number;
+  pricing_type: 'fixed' | 'hourly' | 'tiered';
+  base_price: number;
+  time_estimate_minutes?: number;
+  complexity_level: 'low' | 'medium' | 'high' | 'critical';
+  description_fr?: string;
+  description_en?: string;
+}
+
+export interface RepairIssue {
+  id: number;
+  issue: Issue;
+  issue_id: number;
+  quality_tier?: ProductQualityTier;
+  quality_tier_id?: number;
+  custom_price?: number;
+  notes?: string;
+  get_price: number;
 }
 
 export interface Profile {
@@ -74,7 +109,7 @@ export interface Repair {
   file?: string;
   created_at: string;
   updated_at: string;
-  
+
   // Fields expected by frontend but missing in backend model (marked optional)
   status?: RepairStatus;
   statusHistory?: StatusChange[];
@@ -91,6 +126,13 @@ export interface Repair {
   brand?: string;
   model?: string;
   issues?: string[];
+  repair_issues?: RepairIssue[];
+  repair_issue_data?: {
+    issue_id: number;
+    quality_tier_id?: number;
+    custom_price?: number;
+    notes?: string;
+  }[];
   totalCost?: number;
   estimatedCompletion?: Date;
   notes?: string;
