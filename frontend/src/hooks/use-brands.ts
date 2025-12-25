@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api/client";
-import { type Brand, type PaginatedResponse } from "@/types";
+import { type Brand } from "@/types";
 
-const fetchBrands = async (deviceTypeId?: number): Promise<PaginatedResponse<Brand>> => {
-  const params = deviceTypeId ? { device_type: deviceTypeId } : {};
+const fetchBrands = async (deviceTypeId?: number): Promise<Brand[]> => {
+  const params: any = {};
+
+  if (deviceTypeId) {
+    params.device_type = deviceTypeId;
+  }
+
   const response = await api.get("/tech/brands/", { params });
-  return response.data;
+  // With pagination disabled in the backend, the API returns the array directly
+  return Array.isArray(response.data) ? response.data : response.data.results || [];
 };
 
 export const useBrands = (deviceTypeId?: number) => {
-  return useQuery<PaginatedResponse<Brand>, Error>({
+  return useQuery<Brand[], Error>({
     queryKey: ["brands", deviceTypeId],
     queryFn: () => fetchBrands(deviceTypeId),
   });

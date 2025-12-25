@@ -29,6 +29,10 @@ class Command(BaseCommand):
         self.StoreOrder = apps.get_model("tech", "StoreOrder")
         self.Repair = apps.get_model("repairs", "Repair")
         self.Issue = apps.get_model("repairs", "Issue")
+        # Import the new models
+        self.ProductQualityTier = apps.get_model("repairs", "ProductQualityTier")
+        self.ServicePricing = apps.get_model("repairs", "ServicePricing")
+        self.RepairIssue = apps.get_model("repairs", "RepairIssue")
 
         self.stdout.write(
             self.style.SUCCESS("Generating remaining tech data...")
@@ -52,8 +56,12 @@ class Command(BaseCommand):
             self.generate_stock_items()
             self.generate_store_orders()
 
+            # Generate quality tiers before issues so that issues can be linked to product models with tiers
+            self.generate_quality_tiers()
+
             # Generate repairs and issues data
             self.generate_issues()
+            self.generate_service_pricing()
             self.generate_repairs(users)  # Pass users to assign repairs to clients
 
         self.stdout.write(
@@ -278,7 +286,9 @@ class Command(BaseCommand):
                 name=name,
                 defaults={
                     'requires_part': requires_part,
-                    'base_price': base_price
+                    'base_price': base_price,
+                    # Categorize based on requires_part for backward compatibility
+                    'category_type': 'product_based' if requires_part else 'service_based'
                 }
             )
             # Associate the device types using the actual device types from the DB
@@ -319,6 +329,25 @@ class Command(BaseCommand):
                         for device_type in desktop_types:
                             issue.device_types.add(device_type)
 
+            # For product-based issues, link them to a ProductModel that has quality tiers defined
+            # Since we generate quality tiers before issues, we know there should be ProductModel instances with quality tiers
+            if requires_part and issue.category_type == 'product_based':
+                # Find a ProductModel that has quality tiers associated with it
+                # This ensures that when we select this issue, quality tiers will be available
+                product_models_with_tiers = self.ProductModel.objects.filter(
+                    quality_tiers__isnull=False
+                ).distinct()
+
+                if product_models_with_tiers.exists():
+                    issue.associated_product = product_models_with_tiers.first()
+                else:
+                    # Fallback: link to any ProductModel if no quality tiers exist
+                    any_product_model = self.ProductModel.objects.first()
+                    if any_product_model:
+                        issue.associated_product = any_product_model
+
+            issue.save()
+
             if created:
                 created_count += 1
 
@@ -326,6 +355,169 @@ class Command(BaseCommand):
         expected_issue_names = [issue[0] for issue in common_issues]
         existing_issue_count = self.Issue.objects.filter(name__in=expected_issue_names).count()
         self.stdout.write(self.style.SUCCESS(f"{created_count} new issues created, {existing_issue_count - created_count} already existed."))
+
+    def generate_quality_tiers(self):
+        """Generate quality tiers for product-based issues"""
+        self.stdout.write("Generating quality tiers...")
+
+        # Get all products to create quality tiers for
+        products = list(self.Product.objects.all())
+        if not products:
+            self.stdout.write(self.style.WARNING("Skipping quality tiers: No products found."))
+            return
+
+        # Define quality tiers and their characteristics
+        quality_tiers_info = [
+            {
+                'tier': 'standard',
+                'multiplier': 1.0,
+                'warranty_days': 90,
+                'description_fr': 'Pièce compatible de qualité standard',
+                'description_en': 'Standard quality compatible part'
+            },
+            {
+                'tier': 'premium',
+                'multiplier': 1.3,
+                'warranty_days': 180,
+                'description_fr': 'Pièce haute qualité, proche des spécifications originales',
+                'description_en': 'High-quality part matching original specifications'
+            },
+            {
+                'tier': 'original',
+                'multiplier': 1.8,
+                'warranty_days': 365,
+                'description_fr': 'Pièce d\'origine du fabricant',
+                'description_en': 'Manufacturer original part'
+            },
+            {
+                'tier': 'refurbished',
+                'multiplier': 0.7,
+                'warranty_days': 30,
+                'description_fr': 'Pièce reconditionnée avec garantie limitée',
+                'description_en': 'Refurbished part with limited warranty'
+            }
+        ]
+
+        created_count = 0
+        for product in products:
+            # Use the product's repair_price as the base for quality tier pricing
+            base_price = product.repair_price or product.price or Decimal("50.00")
+
+            for tier_info in quality_tiers_info:
+                # Calculate the price based on the multiplier
+                price = base_price * Decimal(str(tier_info['multiplier']))
+
+                # Create the quality tier
+                # Note: The ProductQualityTier model links to ProductModel, not Product
+                # So we need to use the product's model field
+                _, created = self.ProductQualityTier.objects.get_or_create(
+                    product=product.model,  # Use the ProductModel from the product's model field
+                    quality_tier=tier_info['tier'],
+                    defaults={
+                        'price': price,
+                        'warranty_days': tier_info['warranty_days'],
+                        'description_fr': tier_info['description_fr'],
+                        'description_en': tier_info['description_en'],
+                        'availability_status': random.choice(['in_stock', 'low_stock', 'out_of_stock'])
+                    }
+                )
+
+                if created:
+                    created_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f"{created_count} quality tiers generated."))
+
+    def generate_service_pricing(self):
+        """Generate service pricing for service-based issues"""
+        self.stdout.write("Generating service pricing...")
+
+        # Define service-based issues and their pricing
+        service_issues_data = [
+            {
+                'name': 'Diagnostic Service',
+                'device_types': ['phone', 'laptop', 'tablet', 'desktop'],
+                'pricing_type': 'fixed',
+                'base_price': Decimal("25.00"),
+                'complexity': 'medium',
+                'description_fr': 'Service de diagnostic complet pour identifier les problèmes',
+                'description_en': 'Complete diagnostic service to identify issues'
+            },
+            {
+                'name': 'Software Update',
+                'device_types': ['phone', 'laptop', 'tablet', 'desktop'],
+                'pricing_type': 'fixed',
+                'base_price': Decimal("35.00"),
+                'complexity': 'low',
+                'description_fr': 'Mise à jour logicielle et configuration',
+                'description_en': 'Software update and configuration'
+            },
+            {
+                'name': 'Data Backup',
+                'device_types': ['phone', 'laptop', 'tablet', 'desktop'],
+                'pricing_type': 'fixed',
+                'base_price': Decimal("40.00"),
+                'complexity': 'medium',
+                'description_fr': 'Sauvegarde sécurisée des données avant réparation',
+                'description_en': 'Secure data backup before repair'
+            },
+            {
+                'name': 'Cleaning Service',
+                'device_types': ['phone', 'laptop', 'tablet', 'desktop'],
+                'pricing_type': 'fixed',
+                'base_price': Decimal("30.00"),
+                'complexity': 'low',
+                'description_fr': 'Nettoyage approfondi de l\'appareil',
+                'description_en': 'Thorough device cleaning'
+            },
+            {
+                'name': 'Custom Software Installation',
+                'device_types': ['laptop', 'desktop'],
+                'pricing_type': 'fixed',
+                'base_price': Decimal("50.00"),
+                'complexity': 'high',
+                'description_fr': 'Installation de logiciels personnalisés',
+                'description_en': 'Custom software installation'
+            },
+        ]
+
+        created_count = 0
+        for service_data in service_issues_data:
+            # Create or get the issue
+            issue, created = self.Issue.objects.get_or_create(
+                name=service_data['name'],
+                defaults={
+                    'requires_part': False,
+                    'base_price': service_data['base_price'],
+                    'category_type': 'service_based'
+                }
+            )
+
+            # Associate device types
+            for slug in service_data['device_types']:
+                try:
+                    device_type = self.DeviceType.objects.get(slug=slug)
+                    issue.device_types.add(device_type)
+                except self.DeviceType.DoesNotExist:
+                    self.stdout.write(
+                        self.style.WARNING(f"Device type with slug '{slug}' does not exist for service '{service_data['name']}'")
+                    )
+
+            # Create service pricing
+            _, pricing_created = self.ServicePricing.objects.get_or_create(
+                issue=issue,
+                defaults={
+                    'pricing_type': service_data['pricing_type'],
+                    'base_price': service_data['base_price'],
+                    'complexity_level': service_data['complexity'],
+                    'description_fr': service_data['description_fr'],
+                    'description_en': service_data['description_en']
+                }
+            )
+
+            if pricing_created:
+                created_count += 1
+
+        self.stdout.write(self.style.SUCCESS(f"{created_count} service pricing entries generated."))
 
     def generate_repairs(self, users):
         self.stdout.write("Generating repairs...")
@@ -387,7 +579,7 @@ class Command(BaseCommand):
                 client=client,
                 product_model=product_model,
                 description=random.choice([
-                    "Screen cracked", "Battery not charging", "Water damage", "Software issue", 
+                    "Screen cracked", "Battery not charging", "Water damage", "Software issue",
                     "Camera not working", "Charging port damaged", "Touch screen unresponsive"
                 ]),
                 price=Decimal(f"{random.randint(50, 300)}.00"),
@@ -406,7 +598,26 @@ class Command(BaseCommand):
                     if issues:  # Only if issues exist
                         num_issues = random.randint(1, min(3, len(issues)))
                         selected_issues = random.sample(issues, num_issues)
-                        repair.issues.set(selected_issues)
+
+                        # For each selected issue, create a RepairIssue entry
+                        for issue in selected_issues:
+                            # For product-based issues, randomly select a quality tier if available
+                            quality_tier = None
+                            if issue.category_type == 'product_based' and issue.associated_product:
+                                # Get available quality tiers for this product
+                                available_tiers = list(self.ProductQualityTier.objects.filter(
+                                    product=issue.associated_product,
+                                    availability_status='in_stock'
+                                ))
+                                if available_tiers:
+                                    quality_tier = random.choice(available_tiers)
+
+                            # Create the RepairIssue entry
+                            self.RepairIssue.objects.create(
+                                repair=repair,
+                                issue=issue,
+                                quality_tier=quality_tier
+                            )
 
                 self.stdout.write(self.style.SUCCESS(f"{len(created_repairs)} repairs generated with issues associated."))
             except Exception as e:

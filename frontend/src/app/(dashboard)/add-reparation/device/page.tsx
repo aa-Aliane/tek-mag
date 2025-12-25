@@ -6,7 +6,7 @@ import { useReparationStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Check, Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Loader2 } from "lucide-react";
+import { Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -24,18 +24,27 @@ import {
 import { useDeviceTypes } from "@/hooks/use-device-types";
 import { useBrands } from "@/hooks/use-brands";
 import { useProductModels } from "@/hooks/use-product-models";
+import { BrandSelection } from "@/components/features/brand-selection/BrandSelection";
+import { ModelSelection } from "@/components/features/model-selection/ModelSelection";
 
 // Helper function to get device icon
 const getDeviceIcon = (slug: string) => {
-  switch(slug) {
-    case 'smartphone':
-      return <Smartphone className="h-8 w-8" />;
-    case 'tablet':
-      return <Tablet className="h-8 w-8" />;
-    case 'computer':
-      return <Laptop className="h-8 w-8" />;
-    default:
-      return <Smartphone className="h-8 w-8" />;
+  if (slug.includes('smartphone') || slug.includes('phone')) {
+    return <Smartphone className="h-8 w-8" />;
+  } else if (slug.includes('tablet')) {
+    return <Tablet className="h-8 w-8" />;
+  } else if (slug.includes('laptop') || slug.includes('computer') || slug.includes('pc')) {
+    return <Laptop className="h-8 w-8" />;
+  } else if (slug.includes('desktop')) {
+    return <Monitor className="h-8 w-8" />;
+  } else if (slug.includes('watch')) {
+    return <Watch className="h-8 w-8" />;
+  } else if (slug.includes('console')) {
+    return <Gamepad2 className="h-8 w-8" />;
+  } else if (slug.includes('other')) {
+    return <Smartphone className="h-8 w-8" />; // Using smartphone as default for 'other'
+  } else {
+    return <Smartphone className="h-8 w-8" />;
   }
 };
 
@@ -65,9 +74,9 @@ export default function AddReparationDevicePage() {
   // Get device types, brands, and models from API data
   const deviceTypes = deviceTypesData?.results || [];
 
-  // Get device type ID based on the selected device type name
+  // Get device type ID based on the selected device type slug
   const selectedDeviceTypeId = deviceType
-    ? deviceTypes.find((dt) => dt.name === deviceType)?.id
+    ? deviceTypes.find((dt) => dt.slug === deviceType)?.id
     : undefined;
 
   const {
@@ -80,9 +89,9 @@ export default function AddReparationDevicePage() {
     data: modelsData,
     isLoading: isLoadingModels,
     error: modelsError,
-  } = useProductModels(brand);
+  } = useProductModels(brand, selectedDeviceTypeId);
 
-  const brands = brandsData?.results || [];
+  const brands = brandsData || [];
   const models = modelsData?.results || [];
 
   // Brands are already filtered by device type from the backend
@@ -155,7 +164,7 @@ export default function AddReparationDevicePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
           {deviceTypes.map((type) => (
             <button
               key={type.id}
@@ -165,16 +174,14 @@ export default function AddReparationDevicePage() {
                 setModel("");
               }}
               className={cn(
-                "flex flex-col items-center gap-3 p-4 rounded-lg border-2 transition-all hover:border-primary/50",
+                "flex flex-col items-center gap-1 p-2 rounded-lg border transition-all hover:border-primary/50",
                 deviceType === type.slug // Compare with slug
                   ? "border-primary bg-primary/5"
                   : "border-border bg-card",
               )}
             >
               {getDeviceIcon(type.slug)}
-              <span className="text-sm font-medium text-center">
-                {type.name}
-              </span>
+              <span className="text-xs font-medium text-center">{type.name}</span>
             </button>
           ))}
         </div>
@@ -183,155 +190,42 @@ export default function AddReparationDevicePage() {
           <div className="grid gap-4 pt-4">
             <div className="space-y-2">
               <Label>Marque</Label>
-              <Popover open={brandOpen} onOpenChange={setBrandOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={brandOpen}
-                    className="w-full justify-between"
-                    disabled={isLoadingBrands} // Disable while loading brands
-                  >
-                    {isLoadingBrands ? (
-                      <div className="flex items-center">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Chargement...
-                      </div>
-                    ) : (
-                      <>
-                        {brand
-                          ? getBrandName(brand)
-                          : "Sélectionnez une marque..."}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                      </>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0" align="start">
-                  <Command>
-                    <CommandInput
-                      placeholder={
-                        brand ? brand : "rechercher une marque..."
-                      }
-                    />
-                    <CommandList>
-                      {isLoadingBrands ? (
-                        <CommandItem disabled>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Chargement des marques...
-                        </CommandItem>
-                      ) : (
-                        <>
-                          <CommandEmpty>
-                            Aucune marque trouvée.
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredBrands.map((b) => (
-                              <CommandItem
-                                key={b.id}
-                                value={b.id.toString()}
-                                onSelect={(currentValue) => {
-                                  // Always select the clicked brand (no toggle behavior)
-                                  const newBrandId = b.id.toString();
-                                  setBrand(newBrandId);
-                                  setModel("");
-                                  setBrandOpen(false);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    brand === b.id.toString()
-                                      ? "opacity-100"
-                                      : "opacity-0",
-                                  )}
-                                />
-                                {b.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </>
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              {isLoadingBrands ? (
+                <div className="flex items-center justify-center h-24">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Chargement des marques...</span>
+                </div>
+              ) : (
+                <BrandSelection
+                  brands={filteredBrands}
+                  selectedBrand={brand}
+                  onBrandSelect={(brandId) => {
+                    setBrand(brandId);
+                    setModel("");
+                  }}
+                  deviceTypeId={selectedDeviceTypeId}
+                />
+              )}
             </div>
 
             {brand && (
               <div className="space-y-2">
                 <Label>Modèle</Label>
-                <Popover open={modelOpen} onOpenChange={setModelOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={modelOpen}
-                      className="w-full justify-between"
-                      disabled={isLoadingModels} // Disable while loading models
-                    >
-                      {isLoadingModels ? (
-                        <div className="flex items-center">
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Chargement...
-                        </div>
-                      ) : (
-                        <>
-                          {model
-                            ? getModelName(model)
-                            : "Sélectionnez un modèle..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-full p-0"
-                    align="start"
-                  >
-                    <Command>
-                      <CommandInput placeholder="Rechercher un modèle..." />
-                      <CommandList>
-                        {isLoadingModels ? (
-                          <CommandItem disabled>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Chargement des modèles...
-                          </CommandItem>
-                        ) : (
-                          <>
-                            <CommandEmpty>
-                              Aucun modèle trouvé.
-                            </CommandEmpty>
-                            <CommandGroup>
-                              {filteredModels.map((m) => (
-                                <CommandItem
-                                  key={m.id}
-                                  value={m.id.toString()}
-                                  onSelect={(currentValue) => {
-                                    // Always select the clicked model (no toggle behavior)
-                                    const newModelId = m.id.toString();
-                                    setModel(newModelId);
-                                    setModelOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      model === m.id.toString()
-                                        ? "opacity-100"
-                                        : "opacity-0",
-                                    )}
-                                  />
-                                  {m.name}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {isLoadingModels ? (
+                  <div className="flex items-center justify-center h-24">
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <span>Chargement des modèles...</span>
+                  </div>
+                ) : (
+                  <ModelSelection
+                    models={filteredModels}
+                    selectedBrand={getBrandName(brand)}
+                    selectedModel={model}
+                    onModelSelect={(modelId) => {
+                      setModel(modelId);
+                    }}
+                  />
+                )}
               </div>
             )}
           </div>

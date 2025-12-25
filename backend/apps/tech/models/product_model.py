@@ -22,6 +22,7 @@ class ProductModel(models.Model):
         related_name="models",
         verbose_name="Series",
     )
+    is_popular = models.BooleanField(default=False, verbose_name="Is Popular Model")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,6 +1,7 @@
 # backend/apps/tech/management/commands/import_smart_devices_csv.py
 import csv
 import os
+import re
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from apps.tech.models import Brand, Series, DeviceType, ProductModel
@@ -93,28 +94,40 @@ class Command(BaseCommand):
                         self.style.NOTICE(f'Created Series: {series.name} for {brand.name}')
                     )
 
+                # Determine if this is a popular model based on model name
+                is_popular = self._is_popular_model(model_name)
+
                 # Create ProductModel with proper relationships (fields: name from CSV, plus dummy values for others)
                 try:
                     product_model, pm_created = ProductModel.objects.get_or_create(
                         name=model_name,
                         brand=brand,
                         defaults={
-                            'series': series
+                            'series': series,
+                            'is_popular': is_popular
                         }
                     )
                     if pm_created:
                         created_count += 1
                         self.stdout.write(
-                            self.style.SUCCESS(f'Created ProductModel: {product_model.name}')
+                            self.style.SUCCESS(f'Created ProductModel: {product_model.name} (Popular: {is_popular})')
                         )
                     else:
                         # Update series if it's different (in case CSV data changed)
+                        # Also update the is_popular field if needed
+                        updated = False
                         if product_model.series != series:
                             product_model.series = series
+                            updated = True
+                        if product_model.is_popular != is_popular:
+                            product_model.is_popular = is_popular
+                            updated = True
+
+                        if updated:
                             product_model.save()
                             self.stdout.write(
                                 self.style.WARNING(
-                                    f'Updated ProductModel {product_model.name} series to {series.name}'
+                                    f'Updated ProductModel {product_model.name} (Series: {series.name}, Popular: {is_popular})'
                                 )
                             )
 
@@ -162,13 +175,69 @@ class Command(BaseCommand):
     def _get_market_segment_for_series(self, series_name):
         """Generate market segment based on series name keywords"""
         series_lower = series_name.lower()
-        
+
         premium_keywords = ['pro', 'ultra', 'max', 'premium']
         mid_range_keywords = ['a', 'm', 'se', 'lite']
-        
+
         if any(keyword in series_lower for keyword in premium_keywords):
             return 'PREMIUM'
         elif any(keyword in series_lower for keyword in mid_range_keywords):
             return 'MID_RANGE'
         else:
             return 'FLAGSHIP'
+
+    def _is_popular_model(self, model_name):
+        """Determine if a model is popular based on specific model names"""
+        model_lower = model_name.lower().strip()
+
+        # Define specific popular models based on market data for 2025
+        popular_models = [
+            # Apple iPhones
+            'iphone 16', 'iphone 16 pro', 'iphone 16 pro max', 'iphone 17', 'iphone 17 pro', 'iphone 17 pro max',
+            # Samsung Galaxy series
+            'galaxy a16 5g', 'galaxy a36 5g', 'galaxy s25', 'galaxy s25 ultra', 'galaxy s25 plus',
+            'galaxy note 25', 'galaxy note 25 ultra', 'galaxy z fold 7', 'galaxy z flip 7',
+            # Google Pixel
+            'pixel 10', 'pixel 10 pro', 'pixel 10 pro xl', 'pixel watch 4', 'pixel watch 4 pro',
+            # Apple iPads
+            'ipad 11', 'ipad air m3', 'ipad pro m5', 'ipad pro 13', 'ipad pro 16',
+            # Apple MacBooks
+            'macbook air m4', 'macbook pro m4', 'macbook pro 14', 'macbook pro 16',
+            # Samsung tablets
+            'galaxy tab s11', 'galaxy tab s11+', 'galaxy tab s11 ultra',
+            # Popular Wearables
+            'apple watch series 11', 'apple watch ultra 3', 'apple watch se 3',
+            'samsung galaxy watch 7', 'samsung galaxy watch ultra',
+            # Popular Laptops
+            'surface laptop 7', 'surface laptop 7+', 'zenbook 14 oled', 'zenbook a14',
+            'thinkpad x1 carbon', 'xps 13', 'xps 15', 'spectre x360',
+            # OnePlus
+            'oneplus 15', 'oneplus 15r',
+            # Other popular models
+            'galaxy a55', 'galaxy a35', 'galaxy a15', 'redmi note 13', 'galaxy s24', 'galaxy s24+',
+            'galaxy s24 ultra', 'iphone 15', 'iphone 15 pro', 'iphone 15 pro max'
+        ]
+
+        # Check if the model name exactly matches or contains a popular model name
+        for popular_model in popular_models:
+            if popular_model in model_lower:
+                return True
+
+        # Also check for general popular series
+        popular_series = [
+            r'iphone \d{1,2}',  # iPhone followed by 1-2 digits
+            r'iphone \d{1,2} pro',  # iPhone followed by 1-2 digits and "pro"
+            r'iphone \d{1,2} pro max',  # iPhone followed by 1-2 digits and "pro max"
+            r'galaxy (s|a|note)\d{2}',  # Galaxy followed by S, A, or Note and 2 digits
+            r'pixel \d{1,2}',  # Pixel followed by 1-2 digits
+            r'macbook (air|pro)',  # MacBook Air or Pro
+            r'ipad (pro|air|\d{1,2})',  # iPad Pro, Air, or version number
+            r'apple watch series \d{1,2}',  # Apple Watch Series followed by number
+            r'galaxy watch \d{1,2}'  # Galaxy Watch followed by number
+        ]
+
+        for series_pattern in popular_series:
+            if re.search(series_pattern, model_lower):
+                return True
+
+        return False

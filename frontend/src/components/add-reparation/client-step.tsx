@@ -34,7 +34,7 @@ interface ClientStepProps {
 
 export function ClientStep({ onFormSubmit }: ClientStepProps) {
   const { formData, setFormData, submitForm } = useAddReparationStore();
-  const { deviceType: deviceTypeSlug, brand, model, issues, description, accessories, password, depositReceived, scheduledDate } = useReparationStore();
+  const { deviceType: deviceTypeSlug, brand, model, selectedIssues, description, accessories, password, depositReceived, scheduledDate } = useReparationStore();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: clientsData } = useClients(1, undefined, "Client"); // Only fetch users with role_name "Client"
@@ -62,11 +62,21 @@ export function ClientStep({ onFormSubmit }: ClientStepProps) {
   const { data: allIssuesData } = useCommonIssues(deviceTypeSlug); // Only fetch issues for the selected device type
   const allIssues = allIssuesData || [];
 
-  // Map issue names to IDs
-  const issueIds = issues.map(issueName => {
-    const issue = allIssues.find(i => i.name === issueName);
-    return issue ? issue.id : null;
-  }).filter(id => id !== null) as number[];
+  // Map selected issues to the new structure with quality tiers
+  const repairIssueData = selectedIssues.map(selectedIssue => {
+    const issue = allIssues.find(i => i.id === selectedIssue.issueId);
+    if (!issue) return null;
+
+    return {
+      issue_id: parseInt(selectedIssue.issueId),  // Convert to number for backend
+      quality_tier_id: selectedIssue.selectedTierId,
+      notes: selectedIssue.notes,
+    };
+  }).filter(Boolean) as {
+    issue_id: number;
+    quality_tier_id?: number;
+    notes?: string;
+  }[];
 
   useEffect(() => {
     if (formData.client) setSelectedClient(formData.client);
@@ -96,7 +106,7 @@ export function ClientStep({ onFormSubmit }: ClientStepProps) {
       deviceType: deviceTypeId,                              // Use the numeric ID for device type
       brand: brand ? parseInt(brand) : null,                 // Convert string ID to number for backend
       model: model ? parseInt(model) : null,                 // Convert string ID to number for backend
-      issues: issueIds,                                      // Array of issue IDs from mapped issue names
+      repair_issue_data: repairIssueData,                    // New structure with issues and quality tiers
       issueDescription: description,                         // Description from reparation store
       accessories: accessories ? accessories.split(',').map(a => a.trim()).filter(a => a) : [], // Convert string to array
       password: password,                                    // Password from reparation store
