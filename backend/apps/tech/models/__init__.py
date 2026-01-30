@@ -1,6 +1,6 @@
 from .brand import Brand
 from .device_type import DeviceType
-from .product import Product
+from .part import Part
 from .product_model import ProductModel
 from .series import Series
 from .location import Location
@@ -12,7 +12,7 @@ __all__ = [
     "Brand",
     "Series",
     "ProductModel",
-    "Product",
+    "Part",
     "DeviceType",
     "Location",
     "Supplier",

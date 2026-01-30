@@ -35,7 +35,7 @@ export const StockStats: React.FC<StockStatsProps> = ({ className = '', compact 
     },
     {
       title: 'Valeur totale',
-      value: `${stockItems.reduce((sum, p) => sum + p.quantity * parseFloat(p.product.price || "0"), 0).toFixed(2)} €`,
+      value: `${stockItems.reduce((sum, p) => sum + p.quantity * parseFloat(p.part.price || "0"), 0).toFixed(2)} €`,
       description: 'Estimation valeur',
       color: 'success'
     }

@@ -11,12 +11,13 @@ export const StockHighlightStats: React.FC<StockHighlightStatsProps> = ({ classN
   const stockItems = data?.results || [];
 
   // Calculate stock metrics
-  const totalValue = stockItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.product.price || "0")), 0);
+  const totalValue = stockItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.part.price || "0")), 0);
   const avgPrice = stockItems.length > 0 ? (totalValue / stockItems.length).toFixed(2) : "0.00";
 
-  // Calculate inventory turnover proxy (based on low stock items that might indicate fast movement)
-  const fastMovingItems = stockItems.filter(item => item.quantity < 10 && item.quantity > 0).length;
-  const inventoryHealth = ((stockItems.length - stockItems.filter(p => p.quantity === 0).length) / stockItems.length * 100).toFixed(0);
+  // Calculate inventory health
+  const inventoryHealth = stockItems.length > 0 
+    ? ((stockItems.length - stockItems.filter(p => p.quantity === 0).length) / stockItems.length * 100).toFixed(0)
+    : "0";
 
   const stats: StatCardProps[] = [
     {

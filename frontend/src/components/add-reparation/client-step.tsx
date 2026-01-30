@@ -64,7 +64,7 @@ export function ClientStep({ onFormSubmit }: ClientStepProps) {
 
   // Map selected issues to the new structure with quality tiers
   const repairIssueData = selectedIssues.map(selectedIssue => {
-    const issue = allIssues.find(i => i.id === selectedIssue.issueId);
+    const issue = allIssues.find(i => String(i.id) === selectedIssue.issueId);
     if (!issue) return null;
 
     return {

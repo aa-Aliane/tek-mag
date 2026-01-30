@@ -4,10 +4,10 @@ from rest_framework.response import Response
 from django_filters import rest_framework as filters
 from rest_framework import filters as drf_filters
 from apps.repairs.models import Issue
-from apps.repairs.models.product_quality_tier import ProductQualityTier
+from apps.repairs.models.part_quality_tier import PartQualityTier
 from apps.repairs.models.service_pricing import ServicePricing
 from apps.repairs.serializers.issue import IssueSerializer
-from apps.repairs.serializers.product_quality_tier import ProductQualityTierSerializer
+from apps.repairs.serializers.part_quality_tier import PartQualityTierSerializer
 from apps.repairs.serializers.service_pricing import ServicePricingSerializer
 from django.db.models import Q
 
@@ -37,17 +37,17 @@ class IssueViewSet(viewsets.ModelViewSet):
     def pricing_options(self, request, pk=None):
         """
         Get pricing options for a specific issue
-        For product-based issues: returns available quality tiers
+        For part-based issues: returns available quality tiers
         For service-based issues: returns service pricing details
         """
         issue = self.get_object()
         
-        if issue.category_type == 'product_based' and issue.associated_product:
-            # For product-based issues, return available quality tiers
-            quality_tiers = ProductQualityTier.objects.filter(
-                product=issue.associated_product
+        if issue.category_type == 'part_based' and issue.associated_part:
+            # For part-based issues, return available quality tiers for the part
+            quality_tiers = PartQualityTier.objects.filter(
+                part=issue.associated_part
             )
-            serializer = ProductQualityTierSerializer(quality_tiers, many=True)
+            serializer = PartQualityTierSerializer(quality_tiers, many=True)
             return Response(serializer.data)
         elif issue.category_type == 'service_based':
             # For service-based issues, return service pricing
@@ -86,11 +86,11 @@ class IssueViewSet(viewsets.ModelViewSet):
                           status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProductQualityTierViewSet(viewsets.ModelViewSet):
-    queryset = ProductQualityTier.objects.all()
-    serializer_class = ProductQualityTierSerializer
+class PartQualityTierViewSet(viewsets.ModelViewSet):
+    queryset = PartQualityTier.objects.all()
+    serializer_class = PartQualityTierSerializer
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['product', 'quality_tier', 'availability_status']
+    filterset_fields = ['part', 'quality_tier', 'availability_status']
 
 
 class ServicePricingViewSet(viewsets.ModelViewSet):

@@ -1,4 +1,4 @@
-import { type Product } from "./product";
+import { type Part } from "./part";
 
 export type DeviceType = "smartphone" | "tablet" | "computer" | "other"
 export type RepairStatus = "saisie" | "en-cours" | "prete" | "en-attente"
@@ -27,14 +27,14 @@ export interface Issue {
   deviceTypes: DeviceType[]
   requiresPart?: boolean
   basePrice: number
-  categoryType: 'product_based' | 'service_based'
-  associatedProduct?: Product
+  categoryType: 'part_based' | 'service_based'
+  associatedPart?: Part
   servicePricing?: ServicePricing[]
 }
 
-export interface ProductQualityTier {
+export interface PartQualityTier {
   id: number;
-  product_id: number;
+  part_id: number;
   quality_tier: 'standard' | 'premium' | 'original' | 'refurbished';
   price: number;
   warranty_days: number;
@@ -57,7 +57,7 @@ export interface RepairIssue {
   id: number;
   issue: Issue;
   issue_id: number;
-  quality_tier?: ProductQualityTier;
+  quality_tier?: PartQualityTier;
   quality_tier_id?: number;
   custom_price?: number;
   notes?: string;
@@ -199,7 +199,7 @@ export interface StockType {
 
 export interface StockItem {
   id: number;
-  product: Product;
+  part: Part;
   location: Location;
   stock_type: StockType;
   quantity: number;

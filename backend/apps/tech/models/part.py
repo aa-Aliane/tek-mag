@@ -6,15 +6,12 @@ from .brand import Brand
 from .product_model import ProductModel
 
 
-# Note: Using a string reference for 'repairs.Repair' as the app/model may not be defined yet.
-
-
-class Product(models.Model):
+class Part(models.Model):
     """
-    Represents a product or part for inventory and sale.
+    Represents a spare part or inventory item for inventory and sale.
     """
 
-    name = models.TextField(verbose_name="Product Name")
+    name = models.TextField(verbose_name="Part Name")
     ean13 = models.CharField(
         max_length=13, unique=True, blank=True, null=True, verbose_name="EAN-13 Barcode"
     )
@@ -56,7 +53,7 @@ class Product(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="products",
+        related_name="parts",
         verbose_name="Brand",
     )
     model = models.ForeignKey(
@@ -64,7 +61,7 @@ class Product(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="products",
+        related_name="parts",
         verbose_name="Model",
     )
 
@@ -73,8 +70,8 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Product"
-        verbose_name_plural = "Products"
+        verbose_name = "Part"
+        verbose_name_plural = "Parts"
         ordering = ["name"]
 
     def __str__(self):

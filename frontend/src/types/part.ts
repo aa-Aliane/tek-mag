@@ -28,7 +28,7 @@ export interface ProductModel {
   is_popular?: boolean; // Optional field indicating if this is a popular model
 }
 
-export interface Product {
+export interface Part {
   id: number;
   name: string;
   ean13: string | null;

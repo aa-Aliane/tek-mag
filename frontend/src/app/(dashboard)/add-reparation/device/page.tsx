@@ -6,7 +6,17 @@ import { useReparationStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check, Loader2 } from "lucide-react";
+import {
+  Smartphone,
+  Tablet,
+  Laptop,
+  Monitor,
+  Watch,
+  Gamepad2,
+  ChevronsUpDown,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -29,25 +39,28 @@ import { ModelSelection } from "@/components/features/model-selection/ModelSelec
 
 // Helper function to get device icon
 const getDeviceIcon = (slug: string) => {
-  if (slug.includes('smartphone') || slug.includes('phone')) {
+  if (slug.includes("smartphone") || slug.includes("phone")) {
     return <Smartphone className="h-8 w-8" />;
-  } else if (slug.includes('tablet')) {
+  } else if (slug.includes("tablet")) {
     return <Tablet className="h-8 w-8" />;
-  } else if (slug.includes('laptop') || slug.includes('computer') || slug.includes('pc')) {
+  } else if (
+    slug.includes("laptop") ||
+    slug.includes("computer") ||
+    slug.includes("pc")
+  ) {
     return <Laptop className="h-8 w-8" />;
-  } else if (slug.includes('desktop')) {
+  } else if (slug.includes("desktop")) {
     return <Monitor className="h-8 w-8" />;
-  } else if (slug.includes('watch')) {
+  } else if (slug.includes("watch")) {
     return <Watch className="h-8 w-8" />;
-  } else if (slug.includes('console')) {
+  } else if (slug.includes("console")) {
     return <Gamepad2 className="h-8 w-8" />;
-  } else if (slug.includes('other')) {
+  } else if (slug.includes("other")) {
     return <Smartphone className="h-8 w-8" />; // Using smartphone as default for 'other'
   } else {
     return <Smartphone className="h-8 w-8" />;
   }
 };
-
 
 export default function AddReparationDevicePage() {
   const router = useRouter();
@@ -92,7 +105,7 @@ export default function AddReparationDevicePage() {
   } = useProductModels(brand, selectedDeviceTypeId);
 
   const brands = brandsData || [];
-  const models = modelsData?.results || [];
+  const models = modelsData || [];
 
   // Brands are already filtered by device type from the backend
   const filteredBrands = brands;
@@ -100,7 +113,7 @@ export default function AddReparationDevicePage() {
   // Client-side filtering since API doesn't seem to filter properly
   // Filter models based on selected brand
   const filteredModels = brand
-    ? models.filter(model => model.brand == brand)
+    ? models.filter((model) => model.brand == brand)
     : models;
 
   // Get brand name by ID
@@ -156,9 +169,7 @@ export default function AddReparationDevicePage() {
       {/* Step 1: Device */}
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold mb-2">
-            Type d'appareil
-          </h2>
+          <h2 className="text-xl font-semibold mb-2">Type d'appareil</h2>
           <p className="text-sm text-muted-foreground mb-4">
             Sélectionnez le type d'appareil à réparer
           </p>
@@ -181,7 +192,9 @@ export default function AddReparationDevicePage() {
               )}
             >
               {getDeviceIcon(type.slug)}
-              <span className="text-xs font-medium text-center">{type.name}</span>
+              <span className="text-xs font-medium text-center">
+                {type.name}
+              </span>
             </button>
           ))}
         </div>
@@ -255,3 +268,4 @@ export default function AddReparationDevicePage() {
     </Card>
   );
 }
+

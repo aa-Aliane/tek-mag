@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCommonIssues, useIssuePricingOptions, useMultipleIssuePricingOptions } from "@/hooks/use-common-issues";
-import { Issue, ProductQualityTier } from "@/types";
+import { Issue, PartQualityTier } from "@/types";
 
 export default function AddReparationIssuesPage() {
   const router = useRouter();
@@ -85,8 +85,8 @@ export default function AddReparationIssuesPage() {
     if (exists) {
       removeIssue(issue.id);
     } else {
-      if (issue.categoryType === 'product_based') {
-        // For product-based issues, add the issue and then show the tier selection modal
+      if (issue.categoryType === 'part_based') {
+        // For part-based issues, add the issue and then show the tier selection modal
         addIssue(issue.id, issue.name, issue.categoryType);
         setSelectedIssueForTiers(issue);
       } else {
@@ -100,7 +100,7 @@ export default function AddReparationIssuesPage() {
   const canProceedStep2 = selectedIssues.length > 0 &&
     selectedIssues.every(issue =>
       issue.categoryType === 'service_based' ||
-      (issue.categoryType === 'product_based' && issue.selectedTierId)
+      (issue.categoryType === 'part_based' && issue.selectedTierId)
     );
 
   // Handle quality tier selection from modal
@@ -156,7 +156,7 @@ export default function AddReparationIssuesPage() {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    if (issue.categoryType === 'product_based' && !selectedIssues.some(i => i.issueId === String(issue.id))) {
+                    if (issue.categoryType === 'part_based' && !selectedIssues.some(i => i.issueId === String(issue.id))) {
                       toggleIssue(issue);
                     } else {
                       toggleIssue(issue);
@@ -164,8 +164,8 @@ export default function AddReparationIssuesPage() {
                   }
                 }}
                 onClick={() => {
-                  if (issue.categoryType === 'product_based' && !selectedIssues.some(i => i.issueId === String(issue.id))) {
-                    // If it's a product-based issue that isn't currently selected,
+                  if (issue.categoryType === 'part_based' && !selectedIssues.some(i => i.issueId === String(issue.id))) {
+                    // If it's a part-based issue that isn't currently selected,
                     // we'll handle tier selection after adding it
                     toggleIssue(issue);
                   } else {
@@ -196,11 +196,11 @@ export default function AddReparationIssuesPage() {
                     <span className="text-sm font-medium">{issue.name}</span>
                     <span className={cn(
                       "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                      issue.categoryType === 'product_based'
+                      issue.categoryType === 'part_based'
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
                         : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
                     )}>
-                      {issue.categoryType === 'product_based' ? (
+                      {issue.categoryType === 'part_based' ? (
                         <>
                           <Wrench className="w-3 h-3 mr-1" />
                           Pièce
@@ -213,7 +213,7 @@ export default function AddReparationIssuesPage() {
                       )}
                     </span>
                   </div>
-                  {issue.categoryType === 'product_based' && (
+                  {issue.categoryType === 'part_based' && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Nécessite une pièce de rechange
                     </p>
@@ -224,7 +224,7 @@ export default function AddReparationIssuesPage() {
                       <span className="font-medium text-primary">€{issue.basePrice}</span>
                     </p>
                   )}
-                  {selectedIssues.some(i => i.issueId === String(issue.id)) && issue.categoryType === 'product_based' && (
+                  {selectedIssues.some(i => i.issueId === String(issue.id)) && issue.categoryType === 'part_based' && (
                     <div className="mt-2">
                       <button
                         onClick={(e) => {
@@ -267,11 +267,11 @@ export default function AddReparationIssuesPage() {
                         <h4 className="font-medium">{selectedIssue.issueName}</h4>
                         <span className={cn(
                           "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                          selectedIssue.categoryType === 'product_based'
+                          selectedIssue.categoryType === 'part_based'
                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
                             : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
                         )}>
-                          {selectedIssue.categoryType === 'product_based' ? (
+                          {selectedIssue.categoryType === 'part_based' ? (
                             <>
                               <Wrench className="w-3 h-3 mr-1" />
                               Pièce
@@ -284,7 +284,7 @@ export default function AddReparationIssuesPage() {
                           )}
                         </span>
                       </div>
-                      {selectedIssue.categoryType === 'product_based' && (
+                      {selectedIssue.categoryType === 'part_based' && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Nécessite une pièce de rechange
                         </p>
@@ -339,7 +339,7 @@ export default function AddReparationIssuesPage() {
 
               <QualityTierSelector
                 issueId={selectedIssueForTiers.id}
-                associatedProductId={selectedIssueForTiers.associatedProduct?.id}
+                associatedPartId={selectedIssueForTiers.associatedPart?.id}
                 onTierSelect={handleTierSelect}
                 selectedTierId={selectedIssues.find(i => i.issueId === String(selectedIssueForTiers.id))?.selectedTierId}
                 loadingTiersFor={loadingTiersFor}
@@ -465,14 +465,14 @@ export default function AddReparationIssuesPage() {
 // Quality Tier Selector Component
 function QualityTierSelector({
   issueId,
-  associatedProductId,
+  associatedPartId,
   onTierSelect,
   selectedTierId,
   loadingTiersFor,
   setLoadingTiersFor
 }: {
   issueId: string | number;
-  associatedProductId?: string | number;
+  associatedPartId?: string | number;
   onTierSelect: (issueId: string, tierId: number) => void;
   selectedTierId?: number;
   loadingTiersFor: string | null;
@@ -506,7 +506,7 @@ function QualityTierSelector({
   }
 
   // Filter to get only quality tiers (not service pricing)
-  const qualityTiers: ProductQualityTier[] = pricingOptions || [];
+  const qualityTiers: PartQualityTier[] = pricingOptions || [];
 
   if (!qualityTiers || qualityTiers.length === 0) {
     return (
@@ -583,7 +583,7 @@ function QualityTierSelector({
 function useSubtotal(selectedIssues: any[], commonIssues: any[]) {
   // Create an array of issue IDs that need pricing options
   const issueIdsRequiringPricing = selectedIssues
-    .filter(issue => issue.categoryType === 'product_based' && issue.selectedTierId)
+    .filter(issue => issue.categoryType === 'part_based' && issue.selectedTierId)
     .map(issue => Number(issue.issueId));
 
   // Fetch pricing options for all relevant issues
@@ -595,8 +595,8 @@ function useSubtotal(selectedIssues: any[], commonIssues: any[]) {
   // Calculate subtotal
   let subtotal = 0;
   for (const selectedIssue of selectedIssues) {
-    if (selectedIssue.categoryType === 'product_based' && selectedIssue.selectedTierId) {
-      // For product-based issues, we need to get the price of the selected tier
+    if (selectedIssue.categoryType === 'part_based' && selectedIssue.selectedTierId) {
+      // For part-based issues, we need to get the price of the selected tier
       const fullIssue = commonIssues.find((issue: any) => String(issue.id) === selectedIssue.issueId);
       if (fullIssue) {
         // Find the pricing query for this issue
@@ -605,7 +605,7 @@ function useSubtotal(selectedIssues: any[], commonIssues: any[]) {
         );
 
         if (pricingQuery && pricingQuery.data) {
-          const selectedTier = pricingQuery.data.find((tier: ProductQualityTier) =>
+          const selectedTier = pricingQuery.data.find((tier: PartQualityTier) =>
             tier.id === selectedIssue.selectedTierId
           );
           if (selectedTier) {
@@ -624,4 +624,3 @@ function useSubtotal(selectedIssues: any[], commonIssues: any[]) {
 
   return { subtotal: subtotal.toFixed(2), allLoaded };
 }
-

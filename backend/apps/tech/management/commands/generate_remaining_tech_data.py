@@ -19,7 +19,7 @@ class Command(BaseCommand):
         self.Brand = apps.get_model("tech", "Brand")
         self.Series = apps.get_model("tech", "Series")
         self.DeviceType = apps.get_model("tech", "DeviceType")
-        self.Product = apps.get_model("tech", "Product")
+        self.Part = apps.get_model("tech", "Part")
         self.ProductModel = apps.get_model("tech", "ProductModel")
 
         # New models
@@ -30,7 +30,7 @@ class Command(BaseCommand):
         self.Repair = apps.get_model("repairs", "Repair")
         self.Issue = apps.get_model("repairs", "Issue")
         # Import the new models
-        self.ProductQualityTier = apps.get_model("repairs", "ProductQualityTier")
+        self.PartQualityTier = apps.get_model("repairs", "PartQualityTier")
         self.ServicePricing = apps.get_model("repairs", "ServicePricing")
         self.RepairIssue = apps.get_model("repairs", "RepairIssue")
 
@@ -47,8 +47,8 @@ class Command(BaseCommand):
                 )
                 return
 
-            # Generate products for the imported device models
-            self.generate_products()
+            # Generate parts for the imported device models
+            self.generate_parts()
 
             # Generate remaining tech data
             self.generate_locations()
@@ -56,7 +56,7 @@ class Command(BaseCommand):
             self.generate_stock_items()
             self.generate_store_orders()
 
-            # Generate quality tiers before issues so that issues can be linked to product models with tiers
+            # Generate quality tiers before issues so that issues can be linked to parts with tiers
             self.generate_quality_tiers()
 
             # Generate repairs and issues data
@@ -68,8 +68,8 @@ class Command(BaseCommand):
             self.style.SUCCESS("Remaining tech data generation complete!")
         )
 
-    def generate_products(self):
-        self.stdout.write("Generating products for imported models...")
+    def generate_parts(self):
+        self.stdout.write("Generating parts for imported models...")
 
         all_brands = list(self.Brand.objects.all())
         all_product_models = list(self.ProductModel.objects.all())
@@ -77,14 +77,14 @@ class Command(BaseCommand):
         if not all_brands or not all_product_models:
             self.stdout.write(
                 self.style.WARNING(
-                    "Skipping product generation: Brands or ProductModels not found."
+                    "Skipping part generation: Brands or ProductModels not found."
                 )
             )
             return
 
-        products_to_create = []
+        parts_to_create = []
 
-        product_parts = {
+        device_parts = {
             "phone": [
                 "Screen Assembly", "Battery Pack", "Charging Port", "Rear Camera", "Front Camera", "Loudspeaker",
                 "Earpiece Speaker", "Vibration Motor", "Power Button Flex", "Volume Button Flex", "SIM Tray", "Back Glass",
@@ -104,21 +104,21 @@ class Command(BaseCommand):
             else:
                 device_type_slug = "phone"  # default
             
-            parts = product_parts.get(device_type_slug, product_parts["phone"])
+            parts_list = device_parts.get(device_type_slug, device_parts["phone"])
 
-            num_products = random.randint(1, 3)  # Reduce number per model to avoid too many
-            selected_parts = random.sample(parts, min(num_products, len(parts)))
+            num_parts = random.randint(1, 3)  # Reduce number per model to avoid too many
+            selected_parts = random.sample(parts_list, min(num_parts, len(parts_list)))
 
             # Keep track of SKUs generated in this batch to avoid duplicates
             used_skus = set()
             for part_name in selected_parts:
                 sku = f"SKU-{random.randint(10000, 99999)}"
                 # Check against both database and current batch
-                while self.Product.objects.filter(sku=sku).exists() or sku in used_skus:
+                while self.Part.objects.filter(sku=sku).exists() or sku in used_skus:
                     sku = f"SKU-{random.randint(10000, 99999)}"
                 used_skus.add(sku)
 
-                product = self.Product(
+                part = self.Part(
                     name=f"{model.brand.name} {model.name} {part_name}",
                     ean13=f"{random.randint(1000000000000, 9999999999999)}",
                     sku=sku,
@@ -131,25 +131,25 @@ class Command(BaseCommand):
                     brand=model.brand,
                     model=model,
                 )
-                products_to_create.append(product)
+                parts_to_create.append(part)
 
-        if products_to_create:
+        if parts_to_create:
             # Get all existing SKUs to filter out duplicates
-            existing_skus = set(self.Product.objects.values_list('sku', flat=True))
-            unique_products = []
-            for product in products_to_create:
-                if product.sku not in existing_skus:
-                    unique_products.append(product)
-                    existing_skus.add(product.sku)
+            existing_skus = set(self.Part.objects.values_list('sku', flat=True))
+            unique_parts = []
+            for part in parts_to_create:
+                if part.sku not in existing_skus:
+                    unique_parts.append(part)
+                    existing_skus.add(part.sku)
 
-            if unique_products:
-                self.Product.objects.bulk_create(unique_products)
+            if unique_parts:
+                self.Part.objects.bulk_create(unique_parts)
                 self.stdout.write(
-                    self.style.SUCCESS(f"{len(unique_products)} new products generated.")
+                    self.style.SUCCESS(f"{len(unique_parts)} new parts generated.")
                 )
             else:
                 self.stdout.write(
-                    self.style.WARNING("No new products to generate (all SKUs already exist).")
+                    self.style.WARNING("No new parts to generate (all SKUs already exist).")
                 )
 
     def generate_locations(self):
@@ -208,24 +208,24 @@ class Command(BaseCommand):
 
     def generate_stock_items(self):
         self.stdout.write("Generating stock items...")
-        products = list(self.Product.objects.all())
+        parts = list(self.Part.objects.all())
         locations = list(self.Location.objects.all())
 
-        if not products or not locations:
-            self.stdout.write(self.style.WARNING("Skipping stock items: Products or Locations missing."))
+        if not parts or not locations:
+            self.stdout.write(self.style.WARNING("Skipping stock items: Parts or Locations missing."))
             return
 
-        # Create stock items for random products at random locations
+        # Create stock items for random parts at random locations
         stock_items = []
-        # Create stock for about 60% of products across different locations
-        for product in random.sample(products, k=int(len(products) * 0.6)):
+        # Create stock for about 60% of parts across different locations
+        for part in random.sample(parts, k=int(len(parts) * 0.6)):
             # Assign to 1-2 random locations
             for location in random.sample(locations, k=random.randint(1, min(2, len(locations)))):
-                # Check if this product-location combination already exists
-                if not self.StockItem.objects.filter(product=product, location=location).exists():
+                # Check if this part-location combination already exists
+                if not self.StockItem.objects.filter(part=part, location=location).exists():
                     stock_items.append(
                         self.StockItem(
-                            product=product,
+                            part=part,
                             location=location,
                             quantity=random.randint(0, 30),
                             serial_number=f"SN-{random.randint(10000, 99999)}" if random.choice([True, False]) else None
@@ -287,14 +287,12 @@ class Command(BaseCommand):
                 defaults={
                     'requires_part': requires_part,
                     'base_price': base_price,
-                    # Categorize based on requires_part for backward compatibility
-                    'category_type': 'product_based' if requires_part else 'service_based'
+                    # Categorize based on requires_part
+                    'category_type': 'part_based' if requires_part else 'service_based'
                 }
             )
-            # Associate the device types using the actual device types from the DB
-            # Map general categories to actual device types that exist
+            # Associate the device types
             for category in device_type_slugs:
-                # Look for device types that contain the category name
                 matching_device_types = self.DeviceType.objects.filter(
                     name__icontains=category
                 )
@@ -303,7 +301,7 @@ class Command(BaseCommand):
                     for device_type in matching_device_types:
                         issue.device_types.add(device_type)
                 else:
-                    # If no exact match, try common mappings
+                    # try common mappings
                     if category == 'phone':
                         phone_types = self.DeviceType.objects.filter(
                             name__icontains='smartphone'
@@ -329,44 +327,42 @@ class Command(BaseCommand):
                         for device_type in desktop_types:
                             issue.device_types.add(device_type)
 
-            # For product-based issues, link them to a ProductModel that has quality tiers defined
-            # Since we generate quality tiers before issues, we know there should be ProductModel instances with quality tiers
-            if requires_part and issue.category_type == 'product_based':
-                # Find a ProductModel that has quality tiers associated with it
-                # This ensures that when we select this issue, quality tiers will be available
-                product_models_with_tiers = self.ProductModel.objects.filter(
+            # For part-based issues, link them to a Part that has quality tiers defined
+            if requires_part and issue.category_type == 'part_based':
+                # Find a Part that has quality tiers associated with it
+                parts_with_tiers = self.Part.objects.filter(
                     quality_tiers__isnull=False
                 ).distinct()
 
-                if product_models_with_tiers.exists():
-                    issue.associated_product = product_models_with_tiers.first()
+                if parts_with_tiers.exists():
+                    issue.associated_part = parts_with_tiers.first()
                 else:
-                    # Fallback: link to any ProductModel if no quality tiers exist
-                    any_product_model = self.ProductModel.objects.first()
-                    if any_product_model:
-                        issue.associated_product = any_product_model
+                    # Fallback: link to any Part if no quality tiers exist
+                    any_part = self.Part.objects.first()
+                    if any_part:
+                        issue.associated_part = any_part
 
             issue.save()
 
             if created:
                 created_count += 1
 
-        # Count how many of our expected issues actually exist in the database now
+        # Count existing issues
         expected_issue_names = [issue[0] for issue in common_issues]
         existing_issue_count = self.Issue.objects.filter(name__in=expected_issue_names).count()
         self.stdout.write(self.style.SUCCESS(f"{created_count} new issues created, {existing_issue_count - created_count} already existed."))
 
     def generate_quality_tiers(self):
-        """Generate quality tiers for product-based issues"""
+        """Generate quality tiers for part-based issues"""
         self.stdout.write("Generating quality tiers...")
 
-        # Get all products to create quality tiers for
-        products = list(self.Product.objects.all())
-        if not products:
-            self.stdout.write(self.style.WARNING("Skipping quality tiers: No products found."))
+        # Get all parts to create quality tiers for
+        parts = list(self.Part.objects.all())
+        if not parts:
+            self.stdout.write(self.style.WARNING("Skipping quality tiers: No parts found."))
             return
 
-        # Define quality tiers and their characteristics
+        # Define quality tiers
         quality_tiers_info = [
             {
                 'tier': 'standard',
@@ -399,19 +395,14 @@ class Command(BaseCommand):
         ]
 
         created_count = 0
-        for product in products:
-            # Use the product's repair_price as the base for quality tier pricing
-            base_price = product.repair_price or product.price or Decimal("50.00")
+        for part in parts:
+            base_price = part.repair_price or part.price or Decimal("50.00")
 
             for tier_info in quality_tiers_info:
-                # Calculate the price based on the multiplier
                 price = base_price * Decimal(str(tier_info['multiplier']))
 
-                # Create the quality tier
-                # Note: The ProductQualityTier model links to ProductModel, not Product
-                # So we need to use the product's model field
-                _, created = self.ProductQualityTier.objects.get_or_create(
-                    product=product.model,  # Use the ProductModel from the product's model field
+                _, created = self.PartQualityTier.objects.get_or_create(
+                    part=part,
                     quality_tier=tier_info['tier'],
                     defaults={
                         'price': price,
@@ -431,7 +422,6 @@ class Command(BaseCommand):
         """Generate service pricing for service-based issues"""
         self.stdout.write("Generating service pricing...")
 
-        # Define service-based issues and their pricing
         service_issues_data = [
             {
                 'name': 'Diagnostic Service',
@@ -482,7 +472,6 @@ class Command(BaseCommand):
 
         created_count = 0
         for service_data in service_issues_data:
-            # Create or get the issue
             issue, created = self.Issue.objects.get_or_create(
                 name=service_data['name'],
                 defaults={
@@ -492,17 +481,13 @@ class Command(BaseCommand):
                 }
             )
 
-            # Associate device types
             for slug in service_data['device_types']:
                 try:
                     device_type = self.DeviceType.objects.get(slug=slug)
                     issue.device_types.add(device_type)
                 except self.DeviceType.DoesNotExist:
-                    self.stdout.write(
-                        self.style.WARNING(f"Device type with slug '{slug}' does not exist for service '{service_data['name']}'")
-                    )
+                    pass
 
-            # Create service pricing
             _, pricing_created = self.ServicePricing.objects.get_or_create(
                 issue=issue,
                 defaults={
@@ -522,16 +507,14 @@ class Command(BaseCommand):
     def generate_repairs(self, users):
         self.stdout.write("Generating repairs...")
 
-        # Only include users who have profiles (which means they were created properly)
         clients = []
         for u in users:
             if not u.is_staff and not u.is_superuser:
                 try:
-                    # Check if user has a profile
                     if hasattr(u, 'profile') and u.profile:
                         clients.append(u)
-                except self.Profile.DoesNotExist:
-                    continue  # Skip users without profiles
+                except Exception:
+                    continue
 
         if not clients:
             self.stdout.write(self.style.WARNING("Skipping repairs: No clients with profiles found."))
@@ -543,44 +526,25 @@ class Command(BaseCommand):
             return
 
         issues = list(self.Issue.objects.all())
-        if not issues:
-            self.stdout.write(self.style.WARNING("No issues found to associate with repairs."))
-            issues = []  # Create empty list if no issues are found
-
         repairs = []
 
-        for i in range(30):  # Generate more repairs
+        for i in range(30):
             client = random.choice(clients)
             product_model = random.choice(product_models)
-            date = datetime.now().date() - timedelta(days=random.randint(0, 60))  # More recent
+            date = datetime.now().date() - timedelta(days=random.randint(0, 60))
             uid = f"REP-{date.strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
 
-            # Ensure UID uniqueness
             while self.Repair.objects.filter(uid=uid).exists():
                 uid = f"REP-{date.strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
-
-            # Randomly decide if repair should have a scheduled date (30% chance)
-            scheduled_date = None
-            if random.random() < 0.3:  # 30% chance of having a scheduled date
-                scheduled_date = datetime.now().date() + timedelta(days=random.randint(1, 14))  # Schedule within next 14 days
-
-            # Randomly generate accessories (60% chance of having accessories)
-            accessories = None
-            if random.random() < 0.6:  # 60% chance of having accessories
-                possible_accessories = ["Chargeur", "Étui", "Câble USB", "Oreillettes", "Support", "Film protecteur", "Batterie externe"]
-                selected_accessories = random.sample(possible_accessories, random.randint(1, 3))  # 1-3 accessories
-                accessories = ", ".join(selected_accessories)
 
             repair = self.Repair(
                 uid=uid,
                 date=date,
-                scheduled_date=scheduled_date,
-                accessories=accessories,
                 client=client,
                 product_model=product_model,
                 description=random.choice([
                     "Screen cracked", "Battery not charging", "Water damage", "Software issue",
-                    "Camera not working", "Charging port damaged", "Touch screen unresponsive"
+                    "Camera not working", "Charging port damaged"
                 ]),
                 price=Decimal(f"{random.randint(50, 300)}.00"),
                 status=random.choice(["saisie", "en-cours", "prete", "en-attente"]),
@@ -592,33 +556,27 @@ class Command(BaseCommand):
             try:
                 created_repairs = self.Repair.objects.bulk_create(repairs)
 
-                # Now associate issues with repairs after creating repairs
                 for repair in created_repairs:
-                    # Randomly assign 1-3 issues to each repair
-                    if issues:  # Only if issues exist
+                    if issues:
                         num_issues = random.randint(1, min(3, len(issues)))
                         selected_issues = random.sample(issues, num_issues)
 
-                        # For each selected issue, create a RepairIssue entry
                         for issue in selected_issues:
-                            # For product-based issues, randomly select a quality tier if available
                             quality_tier = None
-                            if issue.category_type == 'product_based' and issue.associated_product:
-                                # Get available quality tiers for this product
-                                available_tiers = list(self.ProductQualityTier.objects.filter(
-                                    product=issue.associated_product,
+                            if issue.category_type == 'part_based' and issue.associated_part:
+                                available_tiers = list(self.PartQualityTier.objects.filter(
+                                    part=issue.associated_part,
                                     availability_status='in_stock'
                                 ))
                                 if available_tiers:
                                     quality_tier = random.choice(available_tiers)
 
-                            # Create the RepairIssue entry
                             self.RepairIssue.objects.create(
                                 repair=repair,
                                 issue=issue,
                                 quality_tier=quality_tier
                             )
 
-                self.stdout.write(self.style.SUCCESS(f"{len(created_repairs)} repairs generated with issues associated."))
+                self.stdout.write(self.style.SUCCESS(f"{len(created_repairs)} repairs generated."))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"Failed to generate repairs: {e}"))
