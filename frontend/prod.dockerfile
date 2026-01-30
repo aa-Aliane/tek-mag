@@ -2,11 +2,13 @@ FROM node:22.16-alpine AS builder
 
 WORKDIR /code
 
-# Install dependencies
+# Copy package files
 COPY package.json package-lock.json* ./
-RUN npm ci
 
-# Build the app
+# Install dependencies - use npm install if package-lock doesn't exist
+RUN npm install
+
+# Copy source and build
 COPY . .
 RUN npm run build
 
