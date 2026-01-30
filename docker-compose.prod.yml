@@ -22,8 +22,9 @@ services:
         max-file: "3"
 
   tek-mag:
-    build: ./backend
-    dockerfile: prod.dockerfile
+    build:
+      context: ./backend
+      dockerfile: prod.dockerfile
     container_name: tek-mag
     restart: unless-stopped
     volumes:
