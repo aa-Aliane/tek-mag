@@ -1,27 +1,33 @@
 import { StatCardProps } from '@/components/shared/StatCard';
 import { StatsGrid } from '@/components/shared/StatsGrid';
-import { mockArchivedRepairs } from '@/lib/data';
+import { type Repair } from '@/types';
 
 interface ArchiveStatsProps {
   className?: string;
   compact?: boolean;
+  repairs: Repair[];
 }
 
-export const ArchiveStats: React.FC<ArchiveStatsProps> = ({ className = '', compact = false }) => {
-  const totalRevenue = mockArchivedRepairs.reduce((sum, repair) => sum + (repair.totalCost || 0), 0);
+export const ArchiveStats: React.FC<ArchiveStatsProps> = ({ className = '', compact = false, repairs = [] }) => {
+  const totalRevenue = repairs.reduce((sum, repair) => sum + (Number(repair.totalCost) || 0), 0);
 
-  const avgRepairTime =
-    mockArchivedRepairs.reduce((sum, repair) => {
-      if (repair.completedAt && repair.createdAt) {
-        const days = Math.ceil((repair.completedAt.getTime() - repair.createdAt.getTime()) / (1000 * 60 * 60 * 24));
-        return sum + days;
-      }
-      return sum;
-    }, 0) / mockArchivedRepairs.length;
+  const avgRepairTime = repairs.length > 0
+    ? repairs.reduce((sum, repair) => {
+        if (repair.completedAt && repair.created_at) {
+          const completedDate = typeof repair.completedAt === 'string' ? new Date(repair.completedAt) : repair.completedAt;
+          const createdDate = typeof repair.created_at === 'string' ? new Date(repair.created_at) : repair.created_at;
 
-  const deviceTypeCount = mockArchivedRepairs.reduce(
+          const days = Math.ceil((completedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+          return sum + days;
+        }
+        return sum;
+      }, 0) / repairs.length
+    : 0;
+
+  const deviceTypeCount = repairs.reduce(
     (acc, repair) => {
-      acc[repair.deviceType] = (acc[repair.deviceType] || 0) + 1;
+      const deviceType = repair.deviceType || 'unknown';
+      acc[deviceType] = (acc[deviceType] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
@@ -30,7 +36,7 @@ export const ArchiveStats: React.FC<ArchiveStatsProps> = ({ className = '', comp
   const stats: StatCardProps[] = [
     {
       title: 'Réparations terminées',
-      value: mockArchivedRepairs.length,
+      value: repairs.length,
       description: 'Total',
       color: 'default'
     },

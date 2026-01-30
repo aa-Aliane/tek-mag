@@ -16,12 +16,19 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
 
   const filteredRepairs = repairs.filter(
-    (repair) =>
-      repair.client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.client.phone.includes(searchTerm) ||
-      repair.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repair.id.includes(searchTerm),
+    (repair) => {
+      const fullName = `${repair.client?.first_name || ''} ${repair.client?.last_name || ''}`.toLowerCase();
+      const phoneNumber = repair.client?.profile?.phone_number || '';
+      const repairId = repair.id?.toString() || '';
+
+      return (
+        fullName.includes(searchTerm.toLowerCase()) ||
+        phoneNumber.includes(searchTerm) ||
+        repair.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        repair.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        repairId.includes(searchTerm)
+      );
+    }
   )
 
   return (
@@ -77,12 +84,12 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                     <div className="text-xs text-muted-foreground capitalize">{repair.deviceType}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium">{repair.client.name}</div>
-                    <div className="text-xs text-muted-foreground">{repair.client.phone}</div>
+                    <div className="text-sm font-medium">{repair.client?.first_name} {repair.client?.last_name}</div>
+                    <div className="text-xs text-muted-foreground">{repair.client?.profile?.phone_number}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
-                      {repair.issues.map((issue, idx) => (
+                      {repair.issues?.map((issue, idx) => (
                         <Badge key={idx} variant="outline" className="text-xs">
                           {issue}
                         </Badge>
@@ -90,14 +97,14 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {format(repair.createdAt, "dd MMM yyyy", { locale: fr })}
+                    {repair.created_at ? format(new Date(repair.created_at), "dd MMM yyyy", { locale: fr }) : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {repair.recoveredAt ? format(repair.recoveredAt, "dd MMM yyyy", { locale: fr }) : "-"}
+                    {repair.recoveredAt ? format(new Date(repair.recoveredAt), "dd MMM yyyy", { locale: fr }) : "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium">
-                      {repair.totalCost ? `${repair.totalCost.toFixed(2)} €` : "-"}
+                      {repair.totalCost ? `${Number(repair.totalCost).toFixed(2)} €` : "-"}
                     </div>
                   </td>
                 </tr>

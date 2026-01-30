@@ -1,0 +1,5 @@
+export { ClientsTable } from './clients-table'
+export { ClientForm } from './client-form'
+export { ClientDetails } from './client-details'
+export { ClientDetailsDialog } from './client-details-dialog'
+export { EditClientDialog } from './edit-client-dialog'

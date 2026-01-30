@@ -167,8 +167,8 @@ export function StatusChangeDialog({
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Le client {repair.client.name} sera notifié au {repair.client.phone}
-                {repair.client.email && ` et ${repair.client.email}`}
+                Le client {repair.client?.first_name} {repair.client?.last_name} sera notifié au {repair.client?.profile?.phone_number}
+                {repair.client?.email && ` et ${repair.client?.email}`}
               </AlertDescription>
             </Alert>
           )}

@@ -7,7 +7,6 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RepairsTable, RepairDetails } from "@/components/features/calendrier";
 import { useRepairs, useUpdateRepair } from "@/hooks/use-repairs";
-import { mockArchivedRepairs } from "@/lib/data";
 import {
   type Repair,
   type RepairStatus,
@@ -35,8 +34,6 @@ export default function RepairsPage() {
   const updateRepair = useUpdateRepair();
   const repairs = data?.results || [];
 
-  const [archivedRepairs, setArchivedRepairs] =
-    useState<Repair[]>(mockArchivedRepairs);
   const [selectedRepair, setSelectedRepair] = useState<Repair | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { currentUser } = useUserRole();

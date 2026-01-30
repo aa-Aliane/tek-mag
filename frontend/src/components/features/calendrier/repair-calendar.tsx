@@ -109,7 +109,7 @@ export function RepairCalendar({ repairs, onSelectRepair, onAddRepair }: RepairC
                             <div className="font-medium">
                               {repair.brand} {repair.model}
                             </div>
-                            <div className="text-sm text-muted-foreground mt-1">{repair.client.name}</div>
+                            <div className="text-sm text-muted-foreground mt-1">{repair.client?.first_name} {repair.client?.last_name}</div>
                             <div className="flex flex-wrap gap-1 mt-2">
                               {repair.issues.slice(0, 2).map((issue, idx) => (
                                 <Badge key={idx} variant="secondary" className="text-xs">
