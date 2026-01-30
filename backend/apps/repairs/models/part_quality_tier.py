@@ -1,8 +1,8 @@
 from django.db import models
-from apps.tech.models import ProductModel  # Using ProductModel from tech app
+from apps.tech.models import Part
 
 
-class ProductQualityTier(models.Model):
+class PartQualityTier(models.Model):
     QUALITY_TIER_CHOICES = [
         ('standard', 'Standard (Économique)'),
         ('premium', 'Premium (Haute Qualité)'),
@@ -10,10 +10,11 @@ class ProductQualityTier(models.Model):
         ('refurbished', 'Refurbished (Reconditionné)'),
     ]
 
-    product = models.ForeignKey(
-        ProductModel,
+    part = models.ForeignKey(
+        Part,
         on_delete=models.CASCADE,
-        related_name='quality_tiers'
+        related_name='quality_tiers',
+        verbose_name="Part"
     )
     quality_tier = models.CharField(max_length=20, choices=QUALITY_TIER_CHOICES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -34,7 +35,9 @@ class ProductQualityTier(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['product', 'quality_tier']
+        verbose_name = "Part Quality Tier"
+        verbose_name_plural = "Part Quality Tiers"
+        unique_together = ['part', 'quality_tier']
 
     def __str__(self):
-        return f"{self.product.name} - {self.get_quality_tier_display()}"
+        return f"{self.part.name} - {self.get_quality_tier_display()}"

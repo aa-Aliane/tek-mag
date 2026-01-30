@@ -59,26 +59,26 @@ export function StockTable({ stockItems, onAddStock }: StockTableProps) {
               {stockItems.map((item) => {
                 const isLowStock = item.quantity < 5 // Hardcoded minQuantity
                 const isOutOfStock = item.quantity === 0
-                const product = item.product
+                const part = item.part
 
                 return (
                   <tr key={item.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium">{product.name}</div>
+                        <div className="text-sm font-medium">{part.name}</div>
                         {isOutOfStock && <AlertTriangle className="h-4 w-4 text-destructive" />}
                         {isLowStock && !isOutOfStock && <AlertTriangle className="h-4 w-4 text-warning" />}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-muted-foreground capitalize">
-                        {/* product.model?.deviceType || "-" */}
+                        {/* part.model?.deviceType || "-" */}
                         -
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-muted-foreground">
-                        {/* product.brand?.name || "-" */}
+                        {/* part.brand?.name || "-" */}
                         -
                       </div>
                     </td>
@@ -97,8 +97,7 @@ export function StockTable({ stockItems, onAddStock }: StockTableProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium">
-                        {/* product.price ? parseFloat(product.price).toFixed(2) : "0.00" */}
-                        0.00 €
+                        {part.price ? parseFloat(part.price).toFixed(2) : "0.00"} €
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -131,7 +130,7 @@ export function StockTable({ stockItems, onAddStock }: StockTableProps) {
             <div className="space-y-4">
               <div>
                 <Label>Pièce</Label>
-                <div className="mt-1 text-sm font-medium">{selectedItem.product.name}</div>
+                <div className="mt-1 text-sm font-medium">{selectedItem.part.name}</div>
                 <div className="text-xs text-muted-foreground">Stock actuel: {selectedItem.quantity}</div>
               </div>
               <div>
@@ -160,4 +159,3 @@ export function StockTable({ stockItems, onAddStock }: StockTableProps) {
     </>
   )
 }
-

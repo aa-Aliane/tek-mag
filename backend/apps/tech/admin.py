@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import (
     Brand,
     DeviceType,
-    Product,
+    Part,
     ProductModel,
     Series,
     Location,
@@ -13,7 +13,7 @@ from .models import (
 )
 
 admin.site.register(Brand)
-admin.site.register(Product)
+admin.site.register(Part)
 admin.site.register(ProductModel)
 admin.site.register(Series)
 admin.site.register(DeviceType)

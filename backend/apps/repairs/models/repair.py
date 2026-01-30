@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from apps.tech.models import ProductModel
 from decimal import Decimal
-from apps.repairs.models.product_quality_tier import ProductQualityTier
+from apps.repairs.models.part_quality_tier import PartQualityTier
 
 
 class RepairIssue(models.Model):
@@ -12,11 +12,11 @@ class RepairIssue(models.Model):
     repair = models.ForeignKey('Repair', on_delete=models.CASCADE, related_name='repair_issues')
     issue = models.ForeignKey('Issue', on_delete=models.CASCADE)
     quality_tier = models.ForeignKey(
-        ProductQualityTier, 
+        PartQualityTier, 
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        help_text="Selected quality tier for product-based issues"
+        help_text="Selected quality tier for part-based issues"
     )
     custom_price = models.DecimalField(
         max_digits=10, 
@@ -80,9 +80,6 @@ class Repair(models.Model):
     comment = models.TextField(blank=True, null=True, verbose_name="Comment")
     device_photo = models.ImageField(upload_to="repair_photos/", blank=True, null=True, verbose_name="Device Photo")
     file = models.FileField(upload_to="repair_files/", blank=True, null=True, verbose_name="Attached File")
-
-    # Changed from ManyToMany to use the new junction model
-    # issues = models.ManyToManyField("repairs.Issue", blank=True, related_name="repairs", verbose_name="Issues")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

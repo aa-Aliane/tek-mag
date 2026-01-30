@@ -3,11 +3,11 @@ from django.utils.translation import gettext_lazy as _
 
 
 class StockItem(models.Model):
-    product = models.ForeignKey(
-        "tech.Product",
+    part = models.ForeignKey(
+        "tech.Part",
         on_delete=models.CASCADE,
         related_name="stock_items",
-        verbose_name=_("product"),
+        verbose_name=_("part"),
     )
     location = models.ForeignKey(
         "tech.Location",
@@ -29,4 +29,4 @@ class StockItem(models.Model):
         verbose_name_plural = _("stock items")
 
     def __str__(self):
-        return f"{self.product} - {self.location}"
+        return f"{self.part} - {self.location}"

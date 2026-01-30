@@ -192,7 +192,7 @@ export default function AddReparationLayout({ children }: { children: ReactNode 
                           {selectedIssues.map((selectedIssue) => (
                             <div key={selectedIssue.issueId} className="text-sm">
                               <div className="font-medium">• {selectedIssue.issueName}</div>
-                              {selectedIssue.categoryType === 'product_based' && selectedIssue.selectedTierId && (
+                              {selectedIssue.categoryType === 'part_based' && selectedIssue.selectedTierId && (
                                 <div className="text-xs text-muted-foreground ml-2">
                                   Option qualité: {selectedIssue.selectedTierId === 1 ? 'Standard' :
                                                    selectedIssue.selectedTierId === 2 ? 'Premium' :

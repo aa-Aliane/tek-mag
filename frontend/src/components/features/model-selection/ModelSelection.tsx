@@ -6,7 +6,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Search, Smartphone, Tablet, Laptop, Monitor, Watch, Gamepad2, ChevronsUpDown, Check, RotateCcw } from "lucide-react";
+import {
+  Search,
+  Smartphone,
+  Tablet,
+  Laptop,
+  Monitor,
+  Watch,
+  Gamepad2,
+  ChevronsUpDown,
+  Check,
+  RotateCcw,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProductModel } from "@/types";
 
@@ -21,17 +32,29 @@ interface ModelSelectionProps {
 const DeviceIcon = ({ modelName }: { modelName: string }) => {
   const modelLower = modelName.toLowerCase();
 
-  if (modelLower.includes('smartphone') || modelLower.includes('phone') || modelLower.includes('iphone')) {
+  if (
+    modelLower.includes("smartphone") ||
+    modelLower.includes("phone") ||
+    modelLower.includes("iphone")
+  ) {
     return <Smartphone className="h-8 w-8" />;
-  } else if (modelLower.includes('tablet')) {
+  } else if (modelLower.includes("tablet")) {
     return <Tablet className="h-8 w-8" />;
-  } else if (modelLower.includes('laptop') || modelLower.includes('computer') || modelLower.includes('pc') || modelLower.includes('macbook')) {
+  } else if (
+    modelLower.includes("laptop") ||
+    modelLower.includes("computer") ||
+    modelLower.includes("pc") ||
+    modelLower.includes("macbook")
+  ) {
     return <Laptop className="h-8 w-8" />;
-  } else if (modelLower.includes('desktop')) {
+  } else if (modelLower.includes("desktop")) {
     return <Monitor className="h-8 w-8" />;
-  } else if (modelLower.includes('watch') || modelLower.includes('apple watch')) {
+  } else if (
+    modelLower.includes("watch") ||
+    modelLower.includes("apple watch")
+  ) {
     return <Watch className="h-8 w-8" />;
-  } else if (modelLower.includes('console')) {
+  } else if (modelLower.includes("console")) {
     return <Gamepad2 className="h-8 w-8" />;
   } else {
     return <Smartphone className="h-8 w-8" />;
@@ -48,12 +71,14 @@ export const ModelSelection = ({
   const [showSelectionView, setShowSelectionView] = useState(true); // Controls view mode
 
   // Get selected model object to display details
-  const selectedModelObject = models.find(model => model.id === selectedModel);
+  const selectedModelObject = models.find(
+    (model) => model.id === selectedModel,
+  );
 
   // Filter models based on search query
   const filteredModels = useMemo(() => {
-    return models.filter(model =>
-      model.name.toLowerCase().includes(searchQuery.toLowerCase())
+    return models.filter((model) =>
+      model.name.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [models, searchQuery]);
 
@@ -62,16 +87,17 @@ export const ModelSelection = ({
     const popular: ProductModel[] = [];
     const other: ProductModel[] = [];
 
-    filteredModels.forEach(model => {
+    filteredModels.forEach((model) => {
       // Use the is_popular field from the backend
       // Use name patterns as fallback for backward compatibility
-      const isPopular = model.is_popular !== undefined ?
-                        model.is_popular :
-                        model.name.toLowerCase().includes('iphone') ||
-                        model.name.toLowerCase().includes('galaxy') ||
-                        model.name.toLowerCase().includes('pixel') ||
-                        model.name.toLowerCase().includes('macbook') ||
-                        model.name.toLowerCase().includes('ipad');
+      const isPopular =
+        model.is_popular !== undefined
+          ? model.is_popular
+          : model.name.toLowerCase().includes("iphone") ||
+            model.name.toLowerCase().includes("galaxy") ||
+            model.name.toLowerCase().includes("pixel") ||
+            model.name.toLowerCase().includes("macbook") ||
+            model.name.toLowerCase().includes("ipad");
 
       if (isPopular) {
         popular.push(model);
@@ -134,7 +160,7 @@ export const ModelSelection = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {popularModels.length > 0 ? (
-            popularModels.map((model) => (
+            popularModels.slice(0, 8).map((model) => (
               <button
                 key={model.id}
                 onClick={() => {
@@ -145,13 +171,15 @@ export const ModelSelection = ({
                   "flex flex-col items-center gap-2 p-3 rounded-lg border transition-all hover:border-primary/50 relative",
                   selectedModel === model.id
                     ? "border-primary bg-primary/5"
-                    : "border-border bg-card hover:bg-accent"
+                    : "border-border bg-card hover:bg-accent",
                 )}
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
                   <DeviceIcon modelName={model.name} />
                 </div>
-                <span className="text-sm font-medium text-center">{model.name}</span>
+                <span className="text-sm font-medium text-center">
+                  {model.name}
+                </span>
                 {selectedModel === model.id && (
                   <Check className="absolute top-2 right-2 h-4 w-4 text-primary" />
                 )}
@@ -193,7 +221,7 @@ export const ModelSelection = ({
                   }}
                   className={cn(
                     "w-full px-4 py-2 text-left hover:bg-accent flex items-center justify-between",
-                    selectedModel === model.id && "bg-primary/10"
+                    selectedModel === model.id && "bg-primary/10",
                   )}
                 >
                   <span>{model.name}</span>
@@ -205,7 +233,9 @@ export const ModelSelection = ({
             </div>
           ) : (
             <div className="p-4 text-center text-sm text-muted-foreground">
-              {searchQuery ? "Aucun modèle trouvé" : "Aucun autre modèle trouvé"}
+              {searchQuery
+                ? "Aucun modèle trouvé"
+                : "Aucun autre modèle trouvé"}
             </div>
           )}
         </div>
@@ -213,3 +243,4 @@ export const ModelSelection = ({
     </div>
   );
 };
+

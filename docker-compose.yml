@@ -6,7 +6,7 @@ services:
     env_file:
       - ./.envs/.local/.db.env
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   backend:
     build: ./backend
@@ -16,7 +16,7 @@ services:
       - migrations_tech:/app/apps/tech/migrations
       - migrations_repairs:/app/apps/repairs/migrations
     ports:
-      - "8000:8000"
+      - "8001:8000"
     env_file:
       - ./.envs/.local/.server.env
       - ./.envs/.local/.db.env
@@ -28,7 +28,7 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "5173:3000"
+      - "5174:3000"
     env_file:
       - ./.envs/.local/.client.env
     volumes:

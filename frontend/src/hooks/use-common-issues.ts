@@ -12,9 +12,9 @@ const fetchCommonIssues = async (deviceTypeId?: string): Promise<Issue[]> => {
     name: issue.name,
     deviceTypes: issue.device_types,
     requiresPart: issue.requires_part,
-    basePrice: issue.base_price,
+    basePrice: parseFloat(issue.base_price || "0"),
     categoryType: issue.category_type,
-    associatedProduct: issue.associated_product,
+    associatedPart: issue.associated_part,
     servicePricing: issue.service_pricing,
   }));
 };
@@ -34,7 +34,11 @@ export const useIssuePricingOptions = (issueId?: number) => {
     queryFn: async () => {
       if (!issueId) throw new Error("Issue ID is required");
       const response = await api.get(`/repairs/issues/${issueId}/pricing_options/`);
-      return response.data;
+      // Parse prices in quality tiers
+      return (response.data || []).map((tier: any) => ({
+        ...tier,
+        price: parseFloat(tier.price || "0")
+      }));
     },
     enabled: !!issueId,
   });
@@ -46,7 +50,11 @@ export const useMultipleIssuePricingOptions = (issueIds: number[]) => {
       queryKey: ["issue-pricing-options", issueId],
       queryFn: async () => {
         const response = await api.get(`/repairs/issues/${issueId}/pricing_options/`);
-        return response.data;
+        // Parse prices in quality tiers
+        return (response.data || []).map((tier: any) => ({
+          ...tier,
+          price: parseFloat(tier.price || "0")
+        }));
       },
       enabled: !!issueId,
     })),

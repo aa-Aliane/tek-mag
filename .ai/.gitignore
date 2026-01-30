@@ -1,0 +1,7 @@
+# Ignore session logs if you want them private or not in the repo
+sessions/*.md
+!sessions/example_session.md
+
+# Ignore temp notes
+temp/
+*.log

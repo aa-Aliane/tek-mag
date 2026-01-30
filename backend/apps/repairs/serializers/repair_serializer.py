@@ -48,7 +48,7 @@ class RepairSerializer(serializers.ModelSerializer):
         # Create repair issues
         for issue_data in repair_issue_data:
             from apps.repairs.models import Issue
-            from apps.repairs.models.product_quality_tier import ProductQualityTier
+            from apps.repairs.models.part_quality_tier import PartQualityTier
             
             issue_id = issue_data.get('issue_id')
             quality_tier_id = issue_data.get('quality_tier_id')
@@ -66,12 +66,12 @@ class RepairSerializer(serializers.ModelSerializer):
                 }
                 
                 if quality_tier_id:
-                    quality_tier = ProductQualityTier.objects.get(id=quality_tier_id)
+                    quality_tier = PartQualityTier.objects.get(id=quality_tier_id)
                     repair_issue_data_obj['quality_tier'] = quality_tier
                 
                 RepairIssue.objects.create(repair=repair, **repair_issue_data_obj)
                 
-            except (Issue.DoesNotExist, ProductQualityTier.DoesNotExist) as e:
+            except (Issue.DoesNotExist, PartQualityTier.DoesNotExist) as e:
                 raise serializers.ValidationError(f"Invalid data: {str(e)}")
         
         # Recalculate the total price
@@ -80,11 +80,11 @@ class RepairSerializer(serializers.ModelSerializer):
         
         return repair
 
-    def update(self, validated_data):
+    def update(self, instance, validated_data):
         repair_issue_data = validated_data.pop('repair_issue_data', None)
         
         # Update repair fields
-        repair = super().update(validated_data)
+        repair = super().update(instance, validated_data)
         
         # Update repair issues if provided
         if repair_issue_data is not None:
@@ -94,7 +94,7 @@ class RepairSerializer(serializers.ModelSerializer):
             # Create new repair issues
             for issue_data in repair_issue_data:
                 from apps.repairs.models import Issue
-                from apps.repairs.models.product_quality_tier import ProductQualityTier
+                from apps.repairs.models.part_quality_tier import PartQualityTier
                 
                 issue_id = issue_data.get('issue_id')
                 quality_tier_id = issue_data.get('quality_tier_id')
@@ -112,12 +112,12 @@ class RepairSerializer(serializers.ModelSerializer):
                     }
                     
                     if quality_tier_id:
-                        quality_tier = ProductQualityTier.objects.get(id=quality_tier_id)
+                        quality_tier = PartQualityTier.objects.get(id=quality_tier_id)
                         repair_issue_data_obj['quality_tier'] = quality_tier
                     
                     RepairIssue.objects.create(repair=repair, **repair_issue_data_obj)
                     
-                except (Issue.DoesNotExist, ProductQualityTier.DoesNotExist) as e:
+                except (Issue.DoesNotExist, PartQualityTier.DoesNotExist) as e:
                     raise serializers.ValidationError(f"Invalid data: {str(e)}")
         
         # Recalculate the total price
