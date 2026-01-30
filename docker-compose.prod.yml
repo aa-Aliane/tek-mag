@@ -49,13 +49,13 @@ services:
     build:
       context: ./frontend
       dockerfile: prod.dockerfile
-      container_name: tek-mag-frontend
-      env_file:
-        - ./.envs/.production/.client.env
-      expose:
-        - "80"
-      networks:
-        - nginx-network
+    container_name: tek-mag-frontend
+    env_file:
+      - ./.envs/.production/.client.env
+    expose:
+      - "80"
+    networks:
+      - nginx-network
 
 volumes:
   postgres_data:
