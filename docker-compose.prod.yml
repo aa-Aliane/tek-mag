@@ -50,21 +50,33 @@ services:
       context: ./frontend
       dockerfile: prod.dockerfile
     container_name: tek-mag-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
     env_file:
       - ./.envs/.production/.client.env
-    command: >
-      sh -c "npm i && npm run build"
-    volumes:
-      - frontend_dist:/code/dist
     networks:
       - nginx-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:
   migrations_accounts:
   migrations_tech:
   migrations_repairs:
-  frontend_dist:
 
 networks:
   app-network:
