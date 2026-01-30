@@ -53,9 +53,10 @@ services:
     env_file:
       - ./.envs/.production/.client.env
     command: >
-      sh -c "npm i && npx vite build --outDir /code/dist"
+      sh -c "npm i && npm run build"
     volumes:
       - frontend_dist:/code/dist
+      - ./frontend/.next:/code/.next
     networks:
       - nginx-network
 
