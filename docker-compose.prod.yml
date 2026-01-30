@@ -56,7 +56,6 @@ services:
       sh -c "npm i && npm run build"
     volumes:
       - frontend_dist:/code/dist
-      - ./frontend/.next:/code/.next
     networks:
       - nginx-network
 
