@@ -58,17 +58,17 @@ services:
     networks:
       - nginx-network
 
-  volumes:
-    postgres_data:
+volumes:
+  postgres_data:
     migrations_accounts:
     migrations_tech:
     migrations_repairs:
     frontend_dist:
 
-  networks:
-    app-network:
-      driver: bridge
-      internal: true
-    nginx-network:
-      driver: bridge
-      external: true
+networks:
+  app-network:
+    driver: bridge
+    internal: true
+  nginx-network:
+    driver: bridge
+    external: true
