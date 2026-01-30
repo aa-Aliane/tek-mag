@@ -1,0 +1,102 @@
+# Backend
+.PHONY: init-backend
+init-backend:
+	@echo "${BLUE}Initializing backend...${NC}"
+
+	@echo "${YELLOW}Creating database migrations...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py makemigrations accounts tech repairs
+	@echo "${GREEN}Migrations created successfully!${NC}"
+
+
+	@echo "${YELLOW}Applying migrations...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
+	@echo "${GREEN}Migrations applied successfully!${NC}"
+
+	@echo "${GREEN}Backend initialization completed!${NC}"
+
+
+.PHONY: migrate
+migrate:
+	@echo "${YELLOW}Creating database migrations...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py makemigrations accounts tech repairs
+	@echo "${GREEN}Migrations created successfully!${NC}"
+
+	@echo "${YELLOW}Applying migrations...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py migrate
+	@echo "${GREEN}Migrations applied successfully!${NC}"
+
+.PHONY: collectstatic
+collectstatic:
+	@echo "${YELLOW}Collecting static files...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py collectstatic --noinput
+	@echo "${GREEN}Static files collected successfully!${NC}"
+
+.PHONY: createsuperuser
+createsuperuser:
+	@echo "${YELLOW}Creating superuser...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py createsuperuser
+	@echo "${GREEN}Superuser created successfully!${NC}"
+
+.PHONY: load-clients-data
+load-clients-data:
+	@echo "${YELLOW}Loading client data...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py load_clients
+	@echo "${GREEN}Client data loaded successfully!${NC}"
+
+.PHONY: load-reparations-data
+load-reparations-data:
+	@echo "${YELLOW}Loading reparation data...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py load_reparations
+	@echo "${GREEN}Reparation data loaded successfully!${NC}"
+
+.PHONY: generate-test-data
+generate-test-data:
+	@echo "${YELLOW}Generating test data...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py generate_test_data
+	@echo "${GREEN}Test data generated successfully!${NC}"
+
+.PHONY: import-smart-devices
+import-smart-devices:
+	@echo "${YELLOW}Importing smart devices data from CSV...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py import_smart_devices_csv
+	@echo "${GREEN}Smart devices data imported successfully!${NC}"
+
+.PHONY: generate-remaining-tech-data
+generate-remaining-tech-data:
+	@echo "${YELLOW}Generating remaining tech data...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py generate_remaining_tech_data
+	@echo "${GREEN}Remaining tech data generated successfully!${NC}"
+
+.PHONY: create-basic-users
+create-basic-users:
+	@echo "${YELLOW}Creating basic users and profiles...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py create_basic_users
+	@echo "${GREEN}Basic users and profiles created successfully!${NC}"
+
+.PHONY: populate-full-dataset
+populate-full-dataset:
+	@echo "${YELLOW}Populating full dataset from CSV with related data...${NC}"
+	@echo "${YELLOW}Step 1: Importing smart devices from CSV...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py import_smart_devices_csv
+	@echo "${YELLOW}Step 2: Creating basic users and profiles...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py create_basic_users
+	@echo "${YELLOW}Step 3: Generating remaining tech data...${NC}"
+	@docker compose -f docker-compose.prod.yml exec backend python manage.py generate_remaining_tech_data
+	@echo "${GREEN}Full dataset populated successfully!${NC}"
+
+VENV_DIR := .venv
+.PHONY: venv
+venv:
+	python -m venv $(VENV_DIR)
+	$(VENV_DIR)/bin/pip install --upgrade pip
+	$(VENV_DIR)/bin/pip install -r backend/requirements.txt
+
+.PHONY: clean
+clean:
+	rm -rf $(VENV_DIR)
+
+# Define colors for output
+BLUE = \033[0;34m
+YELLOW = \033[0;33m
+GREEN = \033[0;32m
+NC = \033[0m # No Color
