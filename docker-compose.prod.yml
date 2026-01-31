@@ -33,7 +33,7 @@ services:
       - migrations_tech:/app/apps/tech/migrations
       - migrations_repairs:/app/apps/repairs/migrations
     ports:
-      - "8001:8000"
+      - "8000:8000"
     env_file:
       - ./.envs/.production/.server.env
       - ./.envs/.production/.db.env
