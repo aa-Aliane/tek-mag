@@ -52,6 +52,8 @@ services:
     container_name: tek-mag-frontend
     env_file:
       - ./.envs/.production/.client.env
+    command: >
+      sh -c "npm run build && npm start"
     expose:
       - "80"
     networks:
