@@ -55,7 +55,7 @@ services:
     command: >
       sh -c "npm run build && npm start"
     expose:
-      - "80"
+      - "3000"
     networks:
       - nginx-network
 
