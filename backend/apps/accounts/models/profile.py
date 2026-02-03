@@ -18,6 +18,7 @@ class Profile(models.Model):
     TYPE_CHOICES = [
         ("Client", "Client"),
         ("Staff", "Staff"),
+        ("Cashier", "Cashier"),
         ("Admin", "Admin"),
     ]
 
