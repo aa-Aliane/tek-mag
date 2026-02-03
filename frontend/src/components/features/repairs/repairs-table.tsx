@@ -14,7 +14,7 @@ import {
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
 import { Search } from "lucide-react"
-import { RepairCard } from "@/components/features/calendrier"
+import { RepairCard } from "@/components/features/repairs"
 
 interface RepairsTableProps {
   repairs: Repair[]

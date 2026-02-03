@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusChangeDialog, PaymentSheet } from "@/components/features/commands"
-import { ScheduleRepairDialog } from "@/components/features/calendrier"
+import { ScheduleRepairDialog } from "@/components/features/repairs"
 import {
   AlertDialog,
   AlertDialogAction,
