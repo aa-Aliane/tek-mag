@@ -1,16 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatusChangeDialog, PaymentSheet } from "@/components/features/commands"
-import { ScheduleRepairDialog } from "@/components/features/repairs"
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { StatusChangeDialog } from "@/components/features/commands";
+import { ScheduleRepairDialog } from "@/components/features/repairs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,12 +19,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import type { Repair, RepairStatus, RepairOutcome, PaymentMethod } from "@/types"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
+} from "@/components/ui/alert-dialog";
+import type {
+  Repair,
+  RepairStatus,
+  RepairOutcome,
+  PaymentMethod,
+} from "@/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
-  Calendar,
   User,
   Smartphone,
   Wrench,
@@ -43,37 +46,55 @@ import {
   Euro,
   CreditCard,
   Banknote,
-  ArrowLeft
-} from "lucide-react"
-import { printRepairTicket } from "@/lib/print-utils"
+  ArrowLeft,
+} from "lucide-react";
+import { printRepairTicket } from "@/lib/print-utils";
 
 interface RepairDetailsProps {
-  repair: Repair | null
-  onClose: () => void
-  onEdit?: (repair: Repair) => void
+  repair: Repair | null;
+  onClose: () => void;
+  onEdit?: (repair: Repair) => void;
   onStatusChange?: (
     repair: Repair,
     newStatus: RepairStatus,
     comment: string,
     notifyClient: boolean,
     outcome?: RepairOutcome,
-  ) => void
-  onSchedule?: (repair: Repair, date: Date) => void
-  onAddPayment?: (repair: Repair, amount: number, method: PaymentMethod, note?: string) => void
-  onDeletePayment?: (repair: Repair, paymentId: string) => void
-  onMarkRecovered?: (repair: Repair) => void
-  currentUserName: string
+  ) => void;
+  onSchedule?: (repair: Repair, date: Date) => void;
+  onAddPayment?: (
+    repair: Repair,
+    amount: number,
+    method: PaymentMethod,
+    note?: string,
+  ) => void;
+  onRestitute?: (repair: Repair) => void;
+  onDeletePayment?: (repair: Repair, paymentId: string) => void;
+  onMarkRecovered?: (repair: Repair) => void;
+  currentUserName: string;
 }
 
 const statusConfig = {
-  saisie: { label: "Saisie", className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-  "en-cours": { label: "En cours", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" },
-  prete: { label: "Prête", className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+  saisie: {
+    label: "Saisie",
+    className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  },
+  "en-cours": {
+    label: "En cours",
+    className:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  },
+  prete: {
+    label: "Prête",
+    className:
+      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  },
   "en-attente": {
     label: "En attente",
-    className: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+    className:
+      "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
   },
-}
+};
 
 export function RepairDetails({
   repair,
@@ -82,20 +103,22 @@ export function RepairDetails({
   onStatusChange,
   onSchedule,
   onAddPayment,
+  onRestitute,
   onDeletePayment,
   onMarkRecovered,
   currentUserName,
 }: RepairDetailsProps) {
-  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
-  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false)
-  const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false) // Changed from dialog to inline form
-  const [isRecoveryDialogOpen, setIsRecoveryDialogOpen] = useState(false)
-  const [isPaymentWarningOpen, setIsPaymentWarningOpen] = useState(false)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+  const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false); // Changed from dialog to inline form
+  const [isRecoveryDialogOpen, setIsRecoveryDialogOpen] = useState(false);
+  const [isPaymentWarningOpen, setIsPaymentWarningOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   // Payment form state
-  const [paymentAmount, setPaymentAmount] = useState("")
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash")
-  const [paymentNote, setPaymentNote] = useState("")
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [paymentNote, setPaymentNote] = useState("");
 
   // Reset payment form when repair changes (when new payment data arrives from parent)
   useEffect(() => {
@@ -105,68 +128,72 @@ export function RepairDetails({
     setPaymentMethod("cash");
   }, [repair]);
 
-  if (!repair) return null
+  if (!repair) return null;
 
   const formatDate = (date: Date | string | undefined, formatStr: string) => {
-    if (!date) return null
+    if (!date) return null;
     try {
-      const dateObj = typeof date === "string" ? new Date(date) : date
-      if (isNaN(dateObj.getTime())) return null
-      return format(dateObj, formatStr, { locale: fr })
+      const dateObj = typeof date === "string" ? new Date(date) : date;
+      if (isNaN(dateObj.getTime())) return null;
+      return format(dateObj, formatStr, { locale: fr });
     } catch {
-      return null
+      return null;
     }
-  }
+  };
 
   const handleStatusChange = (
     newStatus: RepairStatus,
     comment: string,
     notifyClient: boolean,
-    outcome?: RepairOutcome,
+    outcome?: boolean,
   ) => {
     if (onStatusChange) {
-      onStatusChange(repair, newStatus, comment, notifyClient, outcome)
+      onStatusChange(repair, newStatus, comment, notifyClient, outcome);
     }
-    setIsStatusDialogOpen(false)
-  }
+    setIsStatusDialogOpen(false);
+  };
 
   const handleSchedule = (repair: Repair, date: Date) => {
     if (onSchedule) {
-      onSchedule(repair, date)
+      onSchedule(repair, date);
     }
-    setIsScheduleDialogOpen(false)
-  }
+    setIsScheduleDialogOpen(false);
+  };
 
   // Calculate payments using string values from API
   const cardPayment = Number(repair.card_payment || 0);
   const cashPayment = Number(repair.cash_payment || 0);
   const totalPaid = cardPayment + cashPayment;
-  const totalCostValue = (repair.totalCost !== undefined && repair.totalCost !== null && !isNaN(repair.totalCost)) ?
-                         Number(repair.totalCost) :
-                         (!isNaN(Number(repair.price)) && isFinite(Number(repair.price))) ?
-                         Number(repair.price) : 0;
+  const totalCostValue =
+    repair.totalCost !== undefined &&
+    repair.totalCost !== null &&
+    !isNaN(repair.totalCost)
+      ? Number(repair.totalCost)
+      : !isNaN(Number(repair.price)) && isFinite(Number(repair.price))
+        ? Number(repair.price)
+        : 0;
   const remaining = totalCostValue - totalPaid;
   const isPaymentComplete = remaining <= 0;
 
   const handleRecoveryClick = () => {
     if (!isPaymentComplete && totalCostValue > 0) {
-      setIsPaymentWarningOpen(true)
+      setIsPaymentWarningOpen(true);
     } else {
-      setIsRecoveryDialogOpen(true)
+      setIsRecoveryDialogOpen(true);
     }
-  }
+  };
 
   const handleConfirmRecovery = () => {
     if (onMarkRecovered) {
-      onMarkRecovered(repair)
+      onMarkRecovered(repair);
     }
-    setIsRecoveryDialogOpen(false)
-    onClose()
-  }
+    setIsRecoveryDialogOpen(false);
+    onClose();
+  };
 
   const handlePrint = () => {
-    printRepairTicket(repair)
-  }
+    printRepairTicket(repair);
+  };
 
   return (
     <>
@@ -187,7 +214,12 @@ export function RepairDetails({
                 Créée le {formatDate(repair.created_at, "dd MMMM yyyy")}
               </p>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="shrink-0"
+            >
               <X className="h-5 w-5" />
             </Button>
           </div>
@@ -198,18 +230,20 @@ export function RepairDetails({
               <Printer className="h-4 w-4 mr-2" />
               Imprimer
             </Button>
-            
-            {repair.status === "prete" && onMarkRecovered && (
-              <Button
-                variant={isPaymentComplete ? "default" : "outline"}
-                size="sm"
-                onClick={handleRecoveryClick}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Marquer récupéré
-              </Button>
-            )}
-            
+
+            {repair.is_in_store &&
+              repair.status === "prete" &&
+              onMarkRecovered && (
+                <Button
+                  variant={isPaymentComplete ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleRecoveryClick}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Marquer récupéré
+                </Button>
+              )}
+
             {totalCostValue > 0 ? (
               <Button
                 variant={remaining > 0 ? "default" : "outline"}
@@ -222,7 +256,11 @@ export function RepairDetails({
             ) : null}
 
             {onSchedule && (
-              <Button variant="outline" size="sm" onClick={() => setIsScheduleDialogOpen(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsScheduleDialogOpen(true)}
+              >
                 <CalendarClock className="h-4 w-4 mr-2" />
                 {repair.scheduledDate ? "Modifier date" : "Programmer"}
               </Button>
@@ -238,15 +276,23 @@ export function RepairDetails({
                 Retour
               </Button>
             )}
-            
+
             {onEdit && (
-              <Button variant="outline" size="sm" onClick={() => onEdit(repair)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(repair)}
+              >
                 <Edit className="h-4 w-4 mr-2" />
                 Modifier
               </Button>
             )}
-            
-            <Button variant="outline" size="sm" onClick={() => setIsStatusDialogOpen(true)}>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsStatusDialogOpen(true)}
+            >
               <ArrowUpDown className="h-4 w-4 mr-2" />
               Changer statut
             </Button>
@@ -265,17 +311,23 @@ export function RepairDetails({
               <div className="bg-muted/30 rounded-lg p-4 space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Type</span>
-                  <span className="font-medium capitalize">{repair.deviceType || 'Non spécifié'}</span>
+                  <span className="font-medium capitalize">
+                    {repair.deviceType || "Non spécifié"}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Marque</span>
-                  <span className="font-medium">{repair.brand || 'Non spécifié'}</span>
+                  <span className="font-medium">
+                    {repair.brand || "Non spécifié"}
+                  </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Modèle</span>
-                  <span className="font-medium">{repair.model || 'Non spécifié'}</span>
+                  <span className="font-medium">
+                    {repair.model || "Non spécifié"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -284,9 +336,11 @@ export function RepairDetails({
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Wrench className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-lg">Panne(s) & Tarification</h3>
+                <h3 className="font-semibold text-lg">
+                  Panne(s) & Tarification
+                </h3>
               </div>
-              
+
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {repair.issues?.map((issue, idx) => (
@@ -295,20 +349,24 @@ export function RepairDetails({
                     </Badge>
                   ))}
                 </div>
-                
+
                 {repair.issueDescription && (
                   <div className="bg-muted/30 rounded-lg p-4">
-                    <p className="text-sm font-medium mb-1 text-muted-foreground">Description détaillée</p>
+                    <p className="text-sm font-medium mb-1 text-muted-foreground">
+                      Description détaillée
+                    </p>
                     <p className="text-sm">{repair.issueDescription}</p>
                   </div>
                 )}
-                
+
                 {(totalCostValue > 0 || cardPayment > 0 || cashPayment > 0) && (
                   <div className="space-y-3">
                     {totalCostValue > 0 && (
                       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-semibold text-gray-700">Coût total</span>
+                          <span className="font-semibold text-gray-700">
+                            Coût total
+                          </span>
                           <span className="text-2xl font-bold text-blue-600">
                             {totalCostValue.toFixed(2)} €
                           </span>
@@ -323,7 +381,9 @@ export function RepairDetails({
                           <div className="w-full bg-gray-200 rounded-full h-2.5">
                             <div
                               className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
-                              style={{ width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%` }}
+                              style={{
+                                width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%`,
+                              }}
                             ></div>
                           </div>
                         </div>
@@ -345,8 +405,12 @@ export function RepairDetails({
                                   <CreditCard className="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
-                                  <div className="font-medium text-gray-700">Carte bancaire</div>
-                                  <div className="text-xs text-gray-500">Paiement enregistré</div>
+                                  <div className="font-medium text-gray-700">
+                                    Carte bancaire
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Paiement enregistré
+                                  </div>
                                 </div>
                               </div>
                               <span className="font-bold text-green-600">
@@ -362,8 +426,12 @@ export function RepairDetails({
                                   <Banknote className="h-4 w-4 text-green-600" />
                                 </div>
                                 <div>
-                                  <div className="font-medium text-gray-700">Espèces</div>
-                                  <div className="text-xs text-gray-500">Paiement enregistré</div>
+                                  <div className="font-medium text-gray-700">
+                                    Espèces
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    Paiement enregistré
+                                  </div>
                                 </div>
                               </div>
                               <span className="font-bold text-green-600">
@@ -374,7 +442,9 @@ export function RepairDetails({
 
                           <div className="pt-2 border-t border-gray-100">
                             <div className="flex justify-between items-center">
-                              <span className="text-sm font-medium text-gray-600">Total payé</span>
+                              <span className="text-sm font-medium text-gray-600">
+                                Total payé
+                              </span>
                               <span className="text-lg font-bold text-green-600">
                                 {totalPaid.toFixed(2)} €
                               </span>
@@ -382,14 +452,18 @@ export function RepairDetails({
 
                             {remaining > 0 ? (
                               <div className="flex justify-between items-center mt-2">
-                                <span className="text-sm font-medium text-gray-600">Reste à payer</span>
+                                <span className="text-sm font-medium text-gray-600">
+                                  Reste à payer
+                                </span>
                                 <span className="text-lg font-bold text-red-500">
                                   {remaining.toFixed(2)} €
                                 </span>
                               </div>
                             ) : (
                               <div className="flex justify-between items-center mt-2">
-                                <span className="text-sm font-medium text-gray-600">Status</span>
+                                <span className="text-sm font-medium text-gray-600">
+                                  Status
+                                </span>
                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                   <CheckCircle className="h-4 w-4 mr-1" />
                                   Entièrement payé
@@ -415,12 +489,15 @@ export function RepairDetails({
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Nom</span>
                   <span className="font-medium">
-                    {repair.client?.first_name || ''} {repair.client?.last_name || ''}
+                    {repair.client?.first_name || ""}{" "}
+                    {repair.client?.last_name || ""}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Téléphone</span>
+                  <span className="text-sm text-muted-foreground">
+                    Téléphone
+                  </span>
                   <span className="font-medium">
                     {repair.client?.profile?.phone_number || "Pas de numéro"}
                   </span>
@@ -429,8 +506,12 @@ export function RepairDetails({
                   <>
                     <Separator />
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Email</span>
-                      <span className="font-medium text-sm">{repair.client.email}</span>
+                      <span className="text-sm text-muted-foreground">
+                        Email
+                      </span>
+                      <span className="font-medium text-sm">
+                        {repair.client.email}
+                      </span>
                     </div>
                   </>
                 )}
@@ -438,40 +519,51 @@ export function RepairDetails({
             </div>
 
             {/* Additional Information */}
-            {(repair.accessories?.length || repair.password || repair.depositStatus) && (
+            {(repair.accessories?.length ||
+              repair.password ||
+              repair.depositStatus) && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-lg">Informations complémentaires</h3>
+                  <h3 className="font-semibold text-lg">
+                    Informations complémentaires
+                  </h3>
                 </div>
                 <div className="space-y-3">
                   {repair.accessories && (
                     <div className="bg-muted/30 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-3">
                         <Package className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-semibold">Accessoires déposés</span>
+                        <span className="text-sm font-semibold">
+                          Accessoires déposés
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {typeof repair.accessories === 'string'
-                          ? repair.accessories.split(',').map((acc, idx) => {
-                              const item = acc.trim();
-                              return item ? (
-                                <Badge key={idx} variant="outline">
-                                  {item}
-                                </Badge>
-                              ) : null;
-                            }).filter(Boolean)
-                          : Array.isArray(repair.accessories)
-                            ? repair.accessories.map((acc, idx) => {
-                                const item = typeof acc === 'string' ? acc.trim() : acc;
+                        {typeof repair.accessories === "string"
+                          ? repair.accessories
+                              .split(",")
+                              .map((acc, idx) => {
+                                const item = acc.trim();
                                 return item ? (
                                   <Badge key={idx} variant="outline">
                                     {item}
                                   </Badge>
                                 ) : null;
-                              }).filter(Boolean)
-                            : null
-                        }
+                              })
+                              .filter(Boolean)
+                          : Array.isArray(repair.accessories)
+                            ? repair.accessories
+                                .map((acc, idx) => {
+                                  const item =
+                                    typeof acc === "string" ? acc.trim() : acc;
+                                  return item ? (
+                                    <Badge key={idx} variant="outline">
+                                      {item}
+                                    </Badge>
+                                  ) : null;
+                                })
+                                .filter(Boolean)
+                            : null}
                       </div>
                     </div>
                   )}
@@ -480,7 +572,9 @@ export function RepairDetails({
                     <div className="bg-muted/30 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Lock className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-semibold">Mot de passe</span>
+                        <span className="text-sm font-semibold">
+                          Mot de passe
+                        </span>
                       </div>
                       <code className="text-sm bg-background px-3 py-1.5 rounded border">
                         {repair.password}
@@ -491,9 +585,19 @@ export function RepairDetails({
                   {repair.depositStatus && (
                     <div className="bg-muted/30 rounded-lg p-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm font-semibold">Statut de dépôt</span>
-                        <Badge variant={repair.depositStatus === "deposited" ? "default" : "secondary"}>
-                          {repair.depositStatus === "deposited" ? "Déposé" : "Programmé"}
+                        <span className="text-sm font-semibold">
+                          Statut de dépôt
+                        </span>
+                        <Badge
+                          variant={
+                            repair.depositStatus === "deposited"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {repair.depositStatus === "deposited"
+                            ? "Déposé"
+                            : "Programmé"}
                         </Badge>
                       </div>
                     </div>
@@ -512,7 +616,9 @@ export function RepairDetails({
                 {formatDate(repair.created_at, "dd MMMM yyyy") && (
                   <>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Créée le</span>
+                      <span className="text-sm text-muted-foreground">
+                        Créée le
+                      </span>
                       <span className="font-medium text-sm">
                         {formatDate(repair.created_at, "dd MMMM yyyy")}
                       </span>
@@ -520,36 +626,48 @@ export function RepairDetails({
                     <Separator />
                   </>
                 )}
-                {repair.scheduledDate && formatDate(repair.scheduledDate, "dd MMMM yyyy") && (
-                  <>
+                {repair.scheduledDate &&
+                  formatDate(repair.scheduledDate, "dd MMMM yyyy") && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">
+                          Programmée le
+                        </span>
+                        <span className="font-medium text-sm">
+                          {formatDate(repair.scheduledDate, "dd MMMM yyyy")}
+                        </span>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+                {repair.estimatedCompletion &&
+                  formatDate(repair.estimatedCompletion, "dd MMMM yyyy") && (
+                    <>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">
+                          Fin estimée
+                        </span>
+                        <span className="font-medium text-sm">
+                          {formatDate(
+                            repair.estimatedCompletion,
+                            "dd MMMM yyyy",
+                          )}
+                        </span>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+                {repair.completedAt &&
+                  formatDate(repair.completedAt, "dd MMMM yyyy") && (
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Programmée le</span>
+                      <span className="text-sm text-muted-foreground">
+                        Terminée le
+                      </span>
                       <span className="font-medium text-sm">
-                        {formatDate(repair.scheduledDate, "dd MMMM yyyy")}
+                        {formatDate(repair.completedAt, "dd MMMM yyyy")}
                       </span>
                     </div>
-                    <Separator />
-                  </>
-                )}
-                {repair.estimatedCompletion && formatDate(repair.estimatedCompletion, "dd MMMM yyyy") && (
-                  <>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Fin estimée</span>
-                      <span className="font-medium text-sm">
-                        {formatDate(repair.estimatedCompletion, "dd MMMM yyyy")}
-                      </span>
-                    </div>
-                    <Separator />
-                  </>
-                )}
-                {repair.completedAt && formatDate(repair.completedAt, "dd MMMM yyyy") && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Terminée le</span>
-                    <span className="font-medium text-sm">
-                      {formatDate(repair.completedAt, "dd MMMM yyyy")}
-                    </span>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
 
@@ -566,7 +684,9 @@ export function RepairDetails({
             {/* Status History */}
             {repair.statusHistory && repair.statusHistory.length > 0 && (
               <div>
-                <h3 className="font-semibold text-lg mb-3">Historique des changements</h3>
+                <h3 className="font-semibold text-lg mb-3">
+                  Historique des changements
+                </h3>
                 <div className="space-y-3">
                   {repair.statusHistory.map((change) => (
                     <div key={change.id} className="bg-muted/30 rounded-lg p-4">
@@ -575,7 +695,9 @@ export function RepairDetails({
                           <Badge variant="outline" className="text-xs">
                             {statusConfig[change.from].label}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">→</span>
+                          <span className="text-xs text-muted-foreground">
+                            →
+                          </span>
                           <Badge variant="outline" className="text-xs">
                             {statusConfig[change.to].label}
                           </Badge>
@@ -591,7 +713,9 @@ export function RepairDetails({
                         {change.clientNotified && " • Client notifié"}
                       </div>
                       {change.comment && (
-                        <p className="text-sm mt-2 pt-2 border-t">{change.comment}</p>
+                        <p className="text-sm mt-2 pt-2 border-t">
+                          {change.comment}
+                        </p>
                       )}
                     </div>
                   ))}
@@ -646,7 +770,9 @@ export function RepairDetails({
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
                   <div
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
-                    style={{ width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%` }}
+                    style={{
+                      width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -685,19 +811,90 @@ export function RepairDetails({
 
                 <div className="space-y-3">
                   <Label className="text-gray-700">Mode de paiement</Label>
+
                   <RadioGroup
                     value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+                    onValueChange={(value: PaymentMethod) =>
+                      setPaymentMethod(value)
+                    }
+                    className="grid grid-cols-2 gap-4"
+                  >
+                    <div>
+                      <RadioGroupItem
+                        value="cash"
+                        id="cash"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="cash"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                      >
+                        <Banknote className="mb-3 h-6 w-6" />
+                        Espèces
+                      </Label>
+                    </div>
+                    <div>
+                      <RadioGroupItem
+                        value="card"
+                        id="card"
+                        className="peer sr-only"
+                      />
+                      <Label
+                        htmlFor="card"
+                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                      >
+                        <CreditCard className="mb-3 h-6 w-6" />
+                        Carte
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  <div className="space-y-2 mt-4">
+                    <Label htmlFor="paymentNote">Note (optionnel)</Label>
+                    <Textarea
+                      id="paymentNote"
+                      value={paymentNote}
+                      onChange={(e) => setPaymentNote(e.target.value)}
+                      placeholder="Ex: Acompte, Solde..."
+                    />
+                  </div>
+
+                  <Button
+                    className="w-full mt-6"
+                    onClick={() => {
+                      if (onAddPayment && paymentAmount) {
+                        onAddPayment(
+                          repair,
+                          parseFloat(paymentAmount),
+                          paymentMethod,
+                          paymentNote,
+                        );
+                        setIsPaymentFormVisible(false);
+                      }
+                    }}
+                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+                  >
+                    Confirmer le paiement
+                  </Button>
+                  <RadioGroup
+                    value={paymentMethod}
+                    onValueChange={(value) =>
+                      setPaymentMethod(value as PaymentMethod)
+                    }
                     className="grid grid-cols-2 gap-3"
                   >
                     <div
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                        paymentMethod === 'cash'
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
+                        paymentMethod === "cash"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <RadioGroupItem value="cash" id="pay_cash" className="peer sr-only" />
+                      <RadioGroupItem
+                        value="cash"
+                        id="pay_cash"
+                        className="peer sr-only"
+                      />
                       <div className="p-3 bg-yellow-100 rounded-lg peer-data-[state=checked]:bg-yellow-200">
                         <Banknote className="h-5 w-5 text-yellow-700" />
                       </div>
@@ -710,12 +907,16 @@ export function RepairDetails({
                     </div>
                     <div
                       className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                        paymentMethod === 'card'
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
+                        paymentMethod === "card"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
                       }`}
                     >
-                      <RadioGroupItem value="card" id="pay_card" className="peer sr-only" />
+                      <RadioGroupItem
+                        value="card"
+                        id="pay_card"
+                        className="peer sr-only"
+                      />
                       <div className="p-3 bg-blue-100 rounded-lg peer-data-[state=checked]:bg-blue-200">
                         <CreditCard className="h-5 w-5 text-blue-700" />
                       </div>
@@ -730,7 +931,9 @@ export function RepairDetails({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="paymentNote" className="text-gray-700">Note (facultatif)</Label>
+                  <Label htmlFor="paymentNote" className="text-gray-700">
+                    Note (facultatif)
+                  </Label>
                   <Textarea
                     id="paymentNote"
                     value={paymentNote}
@@ -752,18 +955,40 @@ export function RepairDetails({
                   <Button
                     size="sm"
                     onClick={() => {
-                      const parsedAmount = parseFloat(paymentAmount || '0');
+                      const parsedAmount = parseFloat(paymentAmount || "0");
 
-                      if (!isNaN(parsedAmount) && parsedAmount > 0 && onAddPayment && parsedAmount <= remaining + 0.01) { // Small tolerance for floating point precision
-                        onAddPayment(repair, parsedAmount, paymentMethod, paymentNote || undefined);
+                      if (
+                        !isNaN(parsedAmount) &&
+                        parsedAmount > 0 &&
+                        onAddPayment &&
+                        parsedAmount <= remaining + 0.01
+                      ) {
+                        // Small tolerance for floating point precision
+                        onAddPayment(
+                          repair,
+                          parsedAmount,
+                          paymentMethod,
+                          paymentNote || undefined,
+                        );
                         setPaymentAmount("");
                         setPaymentNote("");
                         setIsPaymentFormVisible(false); // Close form after successful payment
                       }
                     }}
-                    disabled={!(paymentAmount && !isNaN(parseFloat(paymentAmount)) && parseFloat(paymentAmount) > 0 && parseFloat(paymentAmount) <= remaining + 0.01)}
+                    disabled={
+                      !(
+                        paymentAmount &&
+                        !isNaN(parseFloat(paymentAmount)) &&
+                        parseFloat(paymentAmount) > 0 &&
+                        parseFloat(paymentAmount) <= remaining + 0.01
+                      )
+                    }
                   >
-                    Enregistrer {paymentAmount ? parseFloat(paymentAmount).toFixed(2) : '0.00'} €
+                    Enregistrer{" "}
+                    {paymentAmount
+                      ? parseFloat(paymentAmount).toFixed(2)
+                      : "0.00"}{" "}
+                    €
                   </Button>
                 </div>
               </div>
@@ -773,32 +998,66 @@ export function RepairDetails({
       )}
 
       {/* Dialogs */}
-      <AlertDialog open={isPaymentWarningOpen} onOpenChange={setIsPaymentWarningOpen}>
-        <AlertDialogContent>
+      <AlertDialog
+        open={isPaymentWarningOpen}
+        onOpenChange={setIsPaymentWarningOpen}
+      >
+        {/* 1. Content must wrap EVERYTHING below */}
+        <AlertDialogContent className="max-w-[400px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Paiement incomplet</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2 text-primary">
+              Restitution et solde dû
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Le client n'a pas encore payé la totalité de la réparation. Il reste {remaining.toFixed(2)} € à payer.
-              <br />
-              <br />
-              Voulez-vous enregistrer un paiement maintenant ?
+              Le client souhaite récupérer son appareil mais il reste
+              <span className="font-bold text-foreground">
+                {" "}
+                {remaining.toFixed(2)} €
+              </span>{" "}
+              à régler.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
+
+          <div className="bg-orange-50 border border-orange-100 p-3 rounded-md text-sm text-orange-800 my-4">
+            Voulez-vous encaisser le reste ou autoriser le départ sans paiement
+            ?
+          </div>
+
+          {/* 2. Footer contains the buttons */}
+          <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row">
+            {/* This MUST be inside Content */}
+            <AlertDialogCancel onClick={() => setIsPaymentWarningOpen(false)}>
+              Annuler
+            </AlertDialogCancel>
+
+            <Button
+              variant="outline"
+              className="border-red-200 text-red-600 hover:bg-red-50"
               onClick={() => {
-                setIsPaymentWarningOpen(false)
-                setIsPaymentDialogOpen(true)
+                setIsPaymentWarningOpen(false);
+                setIsRecoveryDialogOpen(true);
               }}
             >
-              Enregistrer un paiement
+              Restituer sans solde
+            </Button>
+
+            <AlertDialogAction
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => {
+                setIsPaymentWarningOpen(false);
+                setIsPaymentFormVisible(true);
+              }}
+            >
+              Encaisser le reste
             </AlertDialogAction>
           </AlertDialogFooter>
-        </AlertDialogContent>
+        </AlertDialogContent>{" "}
+        {/* 3. Close Content LAST */}
       </AlertDialog>
-
-      <AlertDialog open={isRecoveryDialogOpen} onOpenChange={setIsRecoveryDialogOpen}>
+      <AlertDialog
+        open={isRecoveryDialogOpen}
+        onOpenChange={setIsRecoveryDialogOpen}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la récupération</AlertDialogTitle>
@@ -811,7 +1070,9 @@ export function RepairDetails({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmRecovery}>Confirmer la récupération</AlertDialogAction>
+            <AlertDialogAction onClick={() => onRestitute(repair)}>
+              Confirmer la récupération
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -830,7 +1091,6 @@ export function RepairDetails({
         onOpenChange={setIsScheduleDialogOpen}
         onSchedule={handleSchedule}
       />
-
     </>
-  )
+  );
 }

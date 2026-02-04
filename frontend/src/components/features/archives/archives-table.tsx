@@ -68,9 +68,12 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   Date récupération
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Coût
-                </th>
+                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                   Coût
+                 </th>
+                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                   Statut Paiement
+                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -102,11 +105,33 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                     {repair.recoveredAt ? format(new Date(repair.recoveredAt), "dd MMM yyyy", { locale: fr }) : "-"}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium">
-                      {repair.totalCost ? `${Number(repair.totalCost).toFixed(2)} €` : "-"}
-                    </div>
-                  </td>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                     <div className="text-sm font-medium">
+                       {repair.finalPrice ? `${Number(repair.finalPrice).toFixed(2)} DH` : "-"}
+                       {repair.remise && Number(repair.remise) > 0 && (
+                         <div className="text-xs text-muted-foreground">
+                           Remise: {Number(repair.remise).toFixed(2)} DH
+                         </div>
+                       )}
+                     </div>
+                   </td>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                     <Badge 
+                       variant={
+                         repair.paymentStatus === 'paid' ? 'default' :
+                         repair.paymentStatus === 'partial' ? 'secondary' : 
+                         'destructive'
+                       }
+                     >
+                       {repair.paymentStatus === 'paid' ? 'Payé' :
+                        repair.paymentStatus === 'partial' ? 'Partiel' : 'Impayé'}
+                     </Badge>
+                     {repair.remainingBalance && Number(repair.remainingBalance) > 0 && (
+                       <div className="text-xs text-muted-foreground mt-1">
+                         Reste: {Number(repair.remainingBalance).toFixed(2)} DH
+                       </div>
+                     )}
+                   </td>
                 </tr>
               ))}
             </tbody>

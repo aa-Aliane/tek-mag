@@ -6,10 +6,9 @@ import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { UserRoleProvider } from "@/components/layout/providers";
 import { QueryClientProvider } from "@/providers/QueryClientProvider";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const geistSans = Geist({ subsets: ["latin"] });
-const geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export default function RootLayout({
   children,

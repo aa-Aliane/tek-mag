@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { RepairCalendar, RepairDetails } from "@/components/features/calendrier"
+import { RepairCalendar } from "@/components/features/calendrier"
+import { RepairDetails } from "@/components/features/repairs"
 import { useRepairs, useUpdateRepair } from "@/hooks/use-repairs"
 import { type Repair, type RepairStatus, type RepairOutcome, type PaymentMethod } from "@/types"
 import { currentUser } from "@/components/layout/providers"

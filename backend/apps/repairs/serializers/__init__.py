@@ -1,3 +1,4 @@
-from .repair_serializer import RepairSerializer
+from .repair import RepairSerializer
+from .repair_issue import RepairIssueSerializer
 
-__all__ = ["RepairSerializer"]
+__all__ = ["RepairSerializer", "RepairIssueSerializer"]
