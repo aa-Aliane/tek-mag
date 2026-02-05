@@ -1,4 +1,4 @@
-import { RepairDetails } from "@/components/features/repairs";
+import { RepairDetails } from "@/components/features/repairs/repair-details/repair-details";
 import type { Repair, RepairStatus, PaymentMethod } from "@/types";
 
 interface RepairDetailsSidebarProps {
@@ -9,14 +9,14 @@ interface RepairDetailsSidebarProps {
     repair: Repair,
     newStatus: RepairStatus,
     comment: string,
-    outcome?: boolean
+    outcome?: boolean,
   ) => void;
   onSchedule: (repair: Repair, date: Date) => void;
   onAddPayment: (
     repair: Repair,
     amount: number,
     method: PaymentMethod,
-    note?: string
+    note?: string,
   ) => void;
   onRestitute: (repair: Repair) => void;
   onDeletePayment: (repair: Repair, paymentId: string) => void;
