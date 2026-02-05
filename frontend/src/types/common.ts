@@ -5,8 +5,23 @@ export type RepairStatus = "saisie" | "en-cours" | "prete" | "en-attente";
 export type DepositStatus = "deposited" | "scheduled";
 export type UserRole = "admin" | "manager" | "technician";
 export type RepairOutcome = "success" | "failed" | null;
-export type PaymentMethod = "cash" | "card";
+export type PaymentMethod = "cash" | "card" | "check" | "transfer";
 export type PaymentStatus = "unpaid" | "partial" | "paid";
+
+// Payment interface for the new payment system
+export interface Payment {
+  id: string;
+  amount: number;
+  method: PaymentMethod;
+  note?: string;
+  remise_type?: "percentage" | "fixed" | "none";
+  remise_value?: number;
+  is_rounding?: boolean;
+  original_amount?: number;
+  effective_amount?: number;
+  created_at: string;
+  created_by?: string;
+}
 
 export interface Brand {
   id: string;
@@ -89,14 +104,6 @@ export interface User {
 
 export interface Client extends User {}
 
-export interface Payment {
-  id: string;
-  amount: number;
-  method: PaymentMethod;
-  date: Date;
-  note?: string;
-}
-
 export interface Repair {
   id: number;
   uid: string;
@@ -116,6 +123,7 @@ export interface Repair {
   updated_at: string;
   is_in_store: boolean;
   is_successful: boolean;
+  payment: Payment[];
 
   // Fields expected by frontend but missing in backend model (marked optional)
   status?: RepairStatus;

@@ -33,6 +33,7 @@ class Command(BaseCommand):
         self.PartQualityTier = apps.get_model("repairs", "PartQualityTier")
         self.ServicePricing = apps.get_model("repairs", "ServicePricing")
         self.RepairIssue = apps.get_model("repairs", "RepairIssue")
+        self.Payment = apps.get_model("repairs", "Payment")
 
         self.stdout.write(
             self.style.SUCCESS("Generating remaining tech data...")
@@ -548,7 +549,9 @@ class Command(BaseCommand):
                 ]),
                 price=Decimal(f"{random.randint(50, 300)}.00"),
                 status=random.choice(["saisie", "en-cours", "prete", "en-attente"]),
-                comment="Generated test repair"
+                comment="Generated test repair",
+                is_in_store=random.choice([True, False]),
+                is_successful=random.choice([True, False, None])
             )
             repairs.append(repair)
 
@@ -577,6 +580,82 @@ class Command(BaseCommand):
                                 quality_tier=quality_tier
                             )
 
-                self.stdout.write(self.style.SUCCESS(f"{len(created_repairs)} repairs generated."))
+                    # Generate payment records for each repair
+                    self.generate_payments_for_repair(repair)
+
+                self.stdout.write(self.style.SUCCESS(f"{len(created_repairs)} repairs generated with payments."))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"Failed to generate repairs: {e}"))
+
+    def generate_payments_for_repair(self, repair):
+        """Generate payment records for a repair"""
+        # Only generate payments for repairs that are not in "saisie" status
+        if repair.status == "saisie":
+            return
+
+        # Calculate how much should be paid based on repair price
+        final_price = repair.final_price
+        
+        # Randomly decide payment scenario
+        payment_scenarios = [
+            {"method": "card", "percentage": 1.0},  # Full card payment
+            {"method": "cash", "percentage": 1.0},  # Full cash payment
+            {"method": "card", "percentage": 0.5},  # Half card, half cash
+            {"method": "cash", "percentage": 0.5},  # Half cash, half card
+            {"method": "card", "percentage": 0.3},  # 30% card, 70% cash
+            {"method": "cash", "percentage": 0.3},  # 30% cash, 70% card
+        ]
+        
+        scenario = random.choice(payment_scenarios)
+        
+        payments_to_create = []
+        
+        # First payment (always exists if not saisie)
+        first_amount = final_price * Decimal(str(scenario["percentage"]))
+        first_method = scenario["method"]
+        
+        payments_to_create.append(self.Payment(
+            repair=repair,
+            amount=first_amount.quantize(Decimal("0.01")),
+            method=first_method,
+            remise_type="none",
+            remise_value=Decimal("0.00"),
+            is_rounding=False,
+            created_by=repair.client
+        ))
+        
+        # Second payment if not fully paid
+        if scenario["percentage"] < 1.0:
+            second_amount = final_price - first_amount
+            second_method = "cash" if first_method == "card" else "card"
+            
+            payments_to_create.append(self.Payment(
+                repair=repair,
+                amount=second_amount.quantize(Decimal("0.01")),
+                method=second_method,
+                remise_type="none",
+                remise_value=Decimal("0.00"),
+                is_rounding=False,
+                created_by=repair.client
+            ))
+        
+        # Occasionally add a discount payment
+        if random.random() < 0.2:  # 20% chance
+            discount_amount = final_price * Decimal("0.1")  # 10% discount
+            payments_to_create.append(self.Payment(
+                repair=repair,
+                amount=discount_amount.quantize(Decimal("0.01")),
+                method=random.choice(["cash", "card"]),
+                remise_type="percentage",
+                remise_value=Decimal("10.00"),
+                is_rounding=False,
+                note="Customer discount",
+                created_by=repair.client
+            ))
+        
+        # Bulk create payments
+        if payments_to_create:
+            try:
+                self.Payment.objects.bulk_create(payments_to_create)
+            except Exception as e:
+                self.stdout.write(self.style.WARNING(f"Failed to create payments for repair {repair.uid}: {e}"))

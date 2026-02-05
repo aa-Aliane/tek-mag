@@ -30,6 +30,10 @@ interface RepairsTableProps {
     comment: string,
     notifyClient: boolean,
   ) => void;
+  onLocationChange?: (
+    repair: Repair,
+    newLocation: boolean,
+  ) => void;
   statusFilter: RepairStatus | "all";
   setStatusFilter: (value: RepairStatus | "all") => void;
   deviceTypeFilter: DeviceType | "all";
@@ -96,6 +100,7 @@ export function RepairsTable({
   repairs,
   onViewDetails,
   onStatusChange,
+  onLocationChange,
   statusFilter,
   setStatusFilter,
   deviceTypeFilter,
@@ -338,16 +343,43 @@ export function RepairsTable({
                   )}
                   {isColumnVisible("location") && (
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge
-                        variant={repair.is_in_store ? "default" : "secondary"}
-                        className={
-                          repair.is_in_store
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                            : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                        }
-                      >
-                        {repair.is_in_store ? "En magasin" : "Chez client"}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className={`inline-flex h-8 select-none items-center justify-center rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${
+                              repair.is_in_store
+                                ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                            } hover:opacity-90`}
+                            onClick={(e) => e.stopPropagation()} // Prevent the click from bubbling up to the table row
+                          >
+                            {repair.is_in_store ? "En magasin" : "Chez client"}
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <div className="px-2 py-1 text-xs font-medium text-muted-foreground bg-muted/30 rounded-t px-4">
+                            Changer la localisation vers:
+                          </div>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent the click from bubbling up to the table row
+                              onLocationChange?.(repair, true);
+                            }}
+                            className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                          >
+                            En magasin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent the click from bubbling up to the table row
+                              onLocationChange?.(repair, false);
+                            }}
+                            className="bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+                          >
+                            Chez client
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   )}
                   {isColumnVisible("results") && (

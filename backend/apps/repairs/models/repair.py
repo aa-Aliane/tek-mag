@@ -125,6 +125,25 @@ class Repair(models.Model):
         null=True, blank=True, default=None, verbose_name="Réparation réussie"
     )
 
+    @property
+    def total_paid(self):
+        """Calculate total from payment records"""
+        return self.payments.aggregate(
+            total=models.Sum('amount')
+        )['total'] or Decimal('0.00')
+
+    @property
+    def effective_price(self):
+        """Calculate price after remise"""
+        if self.remise:
+            return max(Decimal('0.00'), self.price - self.remise)
+        return self.price
+
+    @property
+    def remaining_balance(self):
+        """Calculate remaining amount after payments and remise"""
+        return max(Decimal('0.00'), self.effective_price - self.total_paid)
+
     class Meta:
         verbose_name = "Repair"
         verbose_name_plural = "Repairs"

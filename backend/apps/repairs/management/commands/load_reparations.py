@@ -3,6 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from apps.repairs.models.repair import Repair
+from apps.repairs.models.payment import Payment
 from apps.tech.models import ProductModel
 from datetime import datetime
 from decimal import Decimal
@@ -122,6 +123,8 @@ class Command(BaseCommand):
                         # Actual file handling (uploading, saving) is more complex and out of scope for a simple loader.
                         'device_photo': device_photo_path,
                         'file': file_path,
+                        'is_in_store': False,  # Default value for CSV imports
+                        'is_successful': None,  # Default value for CSV imports
                     }
                 )
                 if not created:
@@ -138,6 +141,36 @@ class Command(BaseCommand):
                     repair.device_photo = device_photo_path
                     repair.file = file_path
                     repair.save()
+
+                # Create payment records if card_payment or cash_payment > 0
+                if card_payment > Decimal('0.00') or cash_payment > Decimal('0.00'):
+                    # Card payment
+                    if card_payment > Decimal('0.00'):
+                        Payment.objects.get_or_create(
+                            repair=repair,
+                            amount=card_payment,
+                            method='card',
+                            defaults={
+                                'remise_type': 'none',
+                                'remise_value': Decimal('0.00'),
+                                'is_rounding': False,
+                                'created_by': client_user
+                            }
+                        )
+                    
+                    # Cash payment
+                    if cash_payment > Decimal('0.00'):
+                        Payment.objects.get_or_create(
+                            repair=repair,
+                            amount=cash_payment,
+                            method='cash',
+                            defaults={
+                                'remise_type': 'none',
+                                'remise_value': Decimal('0.00'),
+                                'is_rounding': False,
+                                'created_by': client_user
+                            }
+                        )
 
                 self.stdout.write(self.style.SUCCESS(f'Successfully processed repair: {uid}'))
 

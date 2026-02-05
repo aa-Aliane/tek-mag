@@ -5,7 +5,8 @@ from .views import (
     IssueViewSet, 
     RepairIssueViewSet, 
     PartQualityTierViewSet, 
-    ServicePricingViewSet
+    ServicePricingViewSet,
+    PaymentViewSet
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router.register(r'issues', IssueViewSet)
 router.register(r'repair-issues', RepairIssueViewSet)
 router.register(r'part-quality-tiers', PartQualityTierViewSet)
 router.register(r'service-pricing', ServicePricingViewSet)
+router.register(r'repairs/(?P<repair_pk>[^/.]+)/payments', PaymentViewSet, basename='repair-payment')
 
 urlpatterns = [
     path('', include(router.urls)),

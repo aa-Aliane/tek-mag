@@ -6,51 +6,55 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RepairsTable, RepairDetails } from "@/components/features/repairs";
-import { useRepairs, useUpdateRepair } from "@/hooks/use-repairs";
+import { useUpdateRepair } from "@/hooks/use-repairs";
 import {
   type Repair,
   type RepairStatus,
   type RepairOutcome,
   type PaymentMethod,
   type DeviceType,
+  type PaginatedResponse,
 } from "@/types";
 import { useUserRole } from "@/components/layout/providers";
 import { SharedHeader } from "@/components/shared/shared-header";
 import { toast } from "sonner";
 import { RepairHighlightStats } from "@/components/features/repairs/RepairHighlightStats";
+import { PaginatedLayout } from "@/components/layout/paginated-layout";
+import api from "@/lib/api/client";
 
-export default function RepairsPage() {
+export default function ArchivesPage() {
   const router = useRouter();
-  const queryClient = useQueryClient(); // Add queryClient
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<RepairStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<RepairStatus | "all">("prete"); // Default to "prete" for archives
   const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceType | "all">(
     "all",
   );
-  const { data, isLoading, error } = useRepairs(
-    1,
-    statusFilter === "all" ? undefined : statusFilter,
-    undefined, // client filter
-    deviceTypeFilter === "all" ? undefined : deviceTypeFilter,
-  );
   const updateRepair = useUpdateRepair();
-  const repairs = data?.results || [];
 
   const [selectedRepair, setSelectedRepair] = useState<Repair | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const { currentUser } = useUserRole();
 
-  // Update selected repair when data changes
-  useEffect(() => {
-    if (data?.results && selectedRepair) {
-      const updatedRepair = data.results.find(
-        (r) => r.id === selectedRepair.id,
-      );
-      if (updatedRepair) {
-        setSelectedRepair(updatedRepair);
-      }
+  // Build query key for archives (only "prete" status)
+  const baseQueryKey = ["archives", statusFilter, deviceTypeFilter];
+
+  // Create query function for archives
+  const fetchArchives = async (page: number, pageSize: number): Promise<PaginatedResponse<Repair>> => {
+    const params: any = { page, page_size: pageSize };
+    
+    // For archives, always filter by "prete" status or specific status if selected
+    if (statusFilter === "all") {
+      params.status = "prete"; // Show only "prete" when "all" is selected
+    } else {
+      params.status = statusFilter;
     }
-  }, [data?.results, selectedRepair]);
+    
+    if (deviceTypeFilter !== "all") params.device_type = deviceTypeFilter;
+    
+    const response = await api.get("/repairs/repairs/", { params });
+    return response.data;
+  };
 
   const handleStatusChange = (
     repair: Repair,
@@ -74,6 +78,7 @@ export default function RepairsPage() {
       {
         onSuccess: () => {
           toast.success("Statut mis à jour avec succès");
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
         },
         onError: (error) => {
           toast.error("Erreur lors de la mise à jour du statut");
@@ -105,6 +110,7 @@ export default function RepairsPage() {
       {
         onSuccess: () => {
           toast.success("Rendez-vous planifié avec succès");
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
         },
         onError: () => {
           toast.error("Erreur lors de la planification");
@@ -118,13 +124,13 @@ export default function RepairsPage() {
     updateData.is_in_store = false;
     updateRepair.mutate(
       {
-        id: repair.id,
+        id: String(repair.id),
         data: updateData,
       },
       {
         onSuccess: () => {
           toast.success("Appareil réstitué au client");
-          queryClient.invalidateQueries({ queryKey: ["repairs"] });
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
           queryClient.invalidateQueries({
             queryKey: ["repair", repair.id.toString()],
           });
@@ -157,8 +163,8 @@ export default function RepairsPage() {
       {
         onSuccess: () => {
           toast.success("Paiement ajouté avec succès");
-          // Invalidate the repairs query to refresh data everywhere
-          queryClient.invalidateQueries({ queryKey: ["repairs"] });
+          // Invalidate the archives query to refresh data everywhere
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
           queryClient.invalidateQueries({
             queryKey: ["repair", repair.id.toString()],
           });
@@ -185,13 +191,14 @@ export default function RepairsPage() {
         id: String(repair.id),
         data: {
           recoveredAt: new Date(),
-          status: "prete",
+          status: "prete" as RepairStatus,
         },
       },
       {
         onSuccess: () => {
           toast.success("Marqué comme récupéré");
           setIsDetailsOpen(false);
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
         },
         onError: () => {
           toast.error("Erreur lors de la mise à jour");
@@ -221,22 +228,27 @@ export default function RepairsPage() {
         <RepairHighlightStats className="mb-4 sm:mb-6" />
 
         <div className="flex gap-6 flex-1 min-h-0">
-          <div className={`flex-1 min-w-0 transition-all duration-300`}>
-            <RepairsTable
-              repairs={repairs.filter(
-                (repair: Repair) => repair.status == "prete",
-              )}
-              onViewDetails={handleViewDetails}
-              onStatusChange={handleQuickStatusChange}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              deviceTypeFilter={deviceTypeFilter}
-              setDeviceTypeFilter={setDeviceTypeFilter}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              hiddenColumns={["status"]}
-            />
-          </div>
+          <PaginatedLayout
+            queryKey={baseQueryKey}
+            queryFn={fetchArchives}
+            initialPageSize={10}
+            className="flex-1"
+          >
+            {(repairs, isLoading, error, refetch) => (
+              <RepairsTable
+                repairs={repairs}
+                onViewDetails={handleViewDetails}
+                onStatusChange={handleQuickStatusChange}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                deviceTypeFilter={deviceTypeFilter}
+                setDeviceTypeFilter={setDeviceTypeFilter}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                hiddenColumns={["status"]}
+              />
+            )}
+          </PaginatedLayout>
 
           {isDetailsOpen && selectedRepair && (
             <div className="w-[400px] flex-none animate-in slide-in-from-right-10 duration-300">

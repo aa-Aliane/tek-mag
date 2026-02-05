@@ -39,7 +39,7 @@ export function RepairDetailsSidebar({
   if (!isOpen || !repair) return null;
 
   return (
-    <div className="w-[400px] flex-none animate-in slide-in-from-right-10 duration-300">
+    <div className="w-[300px] flex-none animate-in slide-in-from-right-10 duration-300">
       <RepairDetails
         repair={repair}
         onClose={onClose}

@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUpdateRepair } from "@/hooks/use-repairs";
+import { useUpdateRepair, useCreatePayment } from "@/hooks/use-repairs";
 import { toast } from "sonner";
 import type { Repair, RepairStatus, PaymentMethod } from "@/types";
 
 export function useRepairManagement() {
   const queryClient = useQueryClient();
   const updateRepair = useUpdateRepair();
+  const createPayment = useCreatePayment();
 
   const handleStatusChange = useCallback(
     (
@@ -75,6 +76,32 @@ export function useRepairManagement() {
     [updateRepair]
   );
 
+  const handleLocationChange = useCallback(
+    (repair: Repair, isInStore: boolean) => {
+      updateRepair.mutate(
+        {
+          id: String(repair.id),
+          data: {
+            is_in_store: isInStore,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success(`Localisation mise à jour: ${isInStore ? "En magasin" : "Chez client"}`);
+            queryClient.invalidateQueries({ queryKey: ["repairs"] });
+            queryClient.invalidateQueries({
+              queryKey: ["repair", repair.id.toString()],
+            });
+          },
+          onError: () => {
+            toast.error("Erreur lors de la mise à jour de la localisation");
+          },
+        }
+      );
+    },
+    [updateRepair, queryClient]
+  );
+
   const handleRestitution = useCallback(
     (repair: Repair) => {
       const updateData: Partial<Repair> = {};
@@ -100,28 +127,18 @@ export function useRepairManagement() {
 
   const handleAddPayment = useCallback(
     (repair: Repair, amount: number, method: PaymentMethod, note?: string) => {
-      const currentCard = Number(repair.card_payment || 0);
-      const currentCash = Number(repair.cash_payment || 0);
-
-      const updateData: Partial<Repair> = {};
-      if (method === "card") {
-        updateData.card_payment = String(currentCard + amount);
-      } else {
-        updateData.cash_payment = String(currentCash + amount);
-      }
-
-      updateRepair.mutate(
+      createPayment.mutate(
         {
-          id: String(repair.id),
-          data: updateData,
+          repairId: String(repair.id),
+          data: {
+            amount,
+            method,
+            note,
+          },
         },
         {
           onSuccess: () => {
             toast.success("Paiement ajouté avec succès");
-            queryClient.invalidateQueries({ queryKey: ["repairs"] });
-            queryClient.invalidateQueries({
-              queryKey: ["repair", repair.id.toString()],
-            });
           },
           onError: () => {
             toast.error("Erreur lors de l'ajout du paiement");
@@ -129,7 +146,7 @@ export function useRepairManagement() {
         }
       );
     },
-    [updateRepair, queryClient]
+    [createPayment]
   );
 
   const handleDeletePayment = useCallback(
@@ -166,6 +183,7 @@ export function useRepairManagement() {
     handleStatusChange,
     handleQuickStatusChange,
     handleSchedule,
+    handleLocationChange,
     handleRestitution,
     handleAddPayment,
     handleDeletePayment,

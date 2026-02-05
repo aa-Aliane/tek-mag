@@ -9,6 +9,13 @@ from rest_framework import viewsets
 class RepairFilter(django_filters.FilterSet):
     # Map frontend device types to backend device type slugs
     device_type = django_filters.CharFilter(method="filter_by_device_type")
+    exclude_status = django_filters.CharFilter(method="filter_exclude_status")
+
+    def filter_exclude_status(self, queryset, name, value):
+        """Exclude specific status from results"""
+        if value:
+            return queryset.exclude(status=value)
+        return queryset
 
     def filter_by_device_type(self, queryset, name, value):
         # Handle device type filtering - account for both simple slugs and CSV-imported slugs
@@ -58,7 +65,7 @@ class RepairFilter(django_filters.FilterSet):
 
     class Meta:
         model = Repair
-        fields = ["status", "client", "date"]
+        fields = ["status", "client", "date", "exclude_status"]
 
 
 class RepairViewSet(viewsets.ModelViewSet):
@@ -67,7 +74,9 @@ class RepairViewSet(viewsets.ModelViewSet):
         "client__profile",
         "product_model__brand",
         "product_model__series__device_type",
-    ).prefetch_related("repair_issues__issue", "repair_issues__quality_tier")
+    ).prefetch_related(
+        "repair_issues__issue", "repair_issues__quality_tier", "payments"
+    )
     serializer_class = RepairSerializer
     filter_backends = [DjangoFilterBackend, drf_filters.SearchFilter]
     filterset_class = RepairFilter

@@ -76,11 +76,13 @@ create-basic-users:
 .PHONY: populate-full-dataset
 populate-full-dataset:
 	@echo "${YELLOW}Populating full dataset from CSV with related data...${NC}"
-	@echo "${YELLOW}Step 1: Importing smart devices from CSV...${NC}"
+	@echo "${YELLOW}Step 1: Applying database migrations...${NC}"
+	@docker compose exec backend python manage.py migrate
+	@echo "${YELLOW}Step 2: Importing smart devices from CSV...${NC}"
 	@docker compose exec backend python manage.py import_smart_devices_csv
-	@echo "${YELLOW}Step 2: Creating basic users and profiles...${NC}"
+	@echo "${YELLOW}Step 3: Creating basic users and profiles...${NC}"
 	@docker compose exec backend python manage.py create_basic_users
-	@echo "${YELLOW}Step 3: Generating remaining tech data...${NC}"
+	@echo "${YELLOW}Step 4: Generating remaining tech data with repairs and payments...${NC}"
 	@docker compose exec backend python manage.py generate_remaining_tech_data
 	@echo "${GREEN}Full dataset populated successfully!${NC}"
 

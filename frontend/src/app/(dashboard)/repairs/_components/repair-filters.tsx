@@ -15,8 +15,9 @@ interface RepairFiltersProps {
     repair: Repair,
     newStatus: RepairStatus,
     comment: string,
-    notifyClient: boolean
+    notifyClient: boolean,
   ) => void;
+  onLocationChange?: (repair: Repair, newLocation: boolean) => void;
 }
 
 export function RepairFilters({
@@ -29,13 +30,24 @@ export function RepairFilters({
   setDeviceTypeFilter,
   onViewDetails,
   onStatusChange,
+  onLocationChange,
 }: RepairFiltersProps) {
+  const filteredRepairs = repairs.filter((repair: Repair) => repair.status !== "prete");
+  console.log("RepairFilters debug:", {
+    totalRepairs: repairs.length,
+    filteredRepairs: filteredRepairs.length,
+    statusFilter,
+    deviceTypeFilter,
+    searchTerm
+  });
+  
   return (
     <div className="flex-1 min-w-0 transition-all duration-300">
       <RepairsTable
-        repairs={repairs.filter((repair: Repair) => repair.status != "prete")}
+        repairs={repairs} // Backend now handles filtering out "prete" when needed
         onViewDetails={onViewDetails}
         onStatusChange={onStatusChange}
+        onLocationChange={onLocationChange}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
         deviceTypeFilter={deviceTypeFilter}

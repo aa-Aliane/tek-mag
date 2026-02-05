@@ -2,6 +2,7 @@ from apps.accounts.serializers.account_user_details import AccountUserDetailsSer
 from apps.repairs.models import Repair
 from apps.repairs.models.repair import RepairIssue
 from apps.repairs.serializers.issue import IssueSerializer
+from apps.repairs.serializers.payment import PaymentSerializer
 from apps.repairs.serializers.repair_issue import RepairIssueSerializer
 from apps.tech.serializers.product_model import ProductModelSerializer
 from rest_framework import serializers
@@ -36,6 +37,8 @@ class RepairSerializer(serializers.ModelSerializer):
         source="price", max_digits=10, decimal_places=2, read_only=True
     )
 
+    payments = PaymentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Repair
         fields = [
@@ -67,6 +70,7 @@ class RepairSerializer(serializers.ModelSerializer):
             "status",
             "is_in_store",
             "is_successful",
+            "payments",
         ]
 
     def create(self, validated_data):
@@ -153,5 +157,9 @@ class RepairSerializer(serializers.ModelSerializer):
         # Recalculate the total price
         repair.price = repair.calculate_total_price()
         repair.save()
+
+        return repair
+
+        return repair
 
         return repair

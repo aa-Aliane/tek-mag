@@ -30,7 +30,11 @@ export const calculatePayments = (repair: Repair) => {
         ? Number(repair.price)
         : 0;
 
-  const remaining = totalCostValue - totalPaid;
+  const remaining =
+    repair.payments?.reduce(
+      (acc, payment) => acc - Number(payment.amount),
+      totalCostValue,
+    ) ?? totalCostValue;
   const isPaymentComplete = remaining <= 0;
 
   return {
