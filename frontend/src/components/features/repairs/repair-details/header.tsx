@@ -11,6 +11,7 @@ import {
   Edit,
   ArrowUpDown,
   X,
+  Tag,
 } from "lucide-react";
 import { statusConfig } from "./config";
 import { formatDate } from "./utils";
@@ -23,13 +24,13 @@ export function RepairDetailsHeader({
   onStatusChange,
   onSchedule,
   onMarkRecovered,
-  onAddPayment,
   onPrint,
   isPaymentComplete,
   remaining,
-  totalCostValue,
   isPaymentFormVisible,
   setIsPaymentFormVisible,
+  isDiscountFormVisible,
+  setIsDiscountFormVisible,
 }: RepairDetailsHeaderProps) {
   return (
     <div className="border-b bg-muted/30 px-6 py-4">
@@ -37,7 +38,7 @@ export function RepairDetailsHeader({
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
             <h2 className="text-2xl font-bold">Réparation #{repair.id}</h2>
-            {repair.status && (
+            {repair.status && statusConfig[repair.status] && (
               <Badge className={statusConfig[repair.status].className}>
                 {statusConfig[repair.status].label}
               </Badge>
@@ -75,16 +76,25 @@ export function RepairDetailsHeader({
           </Button>
         )}
 
-        {totalCostValue > 0 ? (
+        {repair.remaining_balance > 0 ? (
           <Button
             variant={remaining > 0 ? "default" : "outline"}
             size="sm"
             onClick={() => setIsPaymentFormVisible(true)}
           >
             <Wallet className="h-4 w-4 mr-2" />
-            {remaining > 0 ? `${remaining.toFixed(2)} €` : "Payé"}
+            {`${repair.remaining_balance} € à payer`}
           </Button>
         ) : null}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsDiscountFormVisible(true)}
+        >
+          <Tag className="h-4 w-4 mr-2" />
+          Appliquer une remise
+        </Button>
 
         {onSchedule && (
           <Button variant="outline" size="sm" onClick={onSchedule}>
@@ -98,6 +108,17 @@ export function RepairDetailsHeader({
             variant="outline"
             size="sm"
             onClick={() => setIsPaymentFormVisible(false)}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retour
+          </Button>
+        )}
+
+        {isDiscountFormVisible && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDiscountFormVisible(false)}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour

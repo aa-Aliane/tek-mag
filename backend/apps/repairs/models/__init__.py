@@ -1,5 +1,6 @@
-from .repair import Repair, RepairIssue
+from .discount import Discount
 from .issue import Issue
 from .part_quality_tier import PartQualityTier
-from .service_pricing import ServicePricing
 from .payment import Payment
+from .repair import Repair, RepairIssue
+from .service_pricing import ServicePricing

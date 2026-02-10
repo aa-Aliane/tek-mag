@@ -1,14 +1,17 @@
-from rest_framework import serializers
 from apps.repairs.models import Payment
+from rest_framework import serializers
 
 
 class PaymentSerializer(serializers.ModelSerializer):
-    effective_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    
+    method_display = serializers.CharField(source="get_method_display", read_only=True)
+    transaction_type_display = serializers.CharField(
+        source="get_transaction_type_display", read_only=True
+    )
+    created_by_name = serializers.CharField(
+        source="created_by.get_full_name", read_only=True
+    )
+
     class Meta:
         model = Payment
-        fields = [
-            'id', 'amount', 'method', 'note', 'remise_type', 'remise_value',
-            'is_rounding', 'original_amount', 'effective_amount', 'created_at', 'created_by'
-        ]
-        read_only_fields = ['created_at', 'created_by', 'original_amount']
+        fields = "__all__"
+        read_only_fields = ["created_at", "created_by"]

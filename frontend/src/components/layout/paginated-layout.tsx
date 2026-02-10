@@ -46,7 +46,9 @@ export function PaginatedLayout<T>({
 }: PaginatedLayoutProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [prevBaseQueryKey, setPrevBaseQueryKey] = useState(queryKey.slice(0, -2));
+  const [prevBaseQueryKey, setPrevBaseQueryKey] = useState(
+    queryKey.slice(0, -2),
+  );
   const queryClient = useQueryClient();
 
   // Build dynamic query key including pagination params
@@ -87,7 +89,10 @@ export function PaginatedLayout<T>({
   // Reset page when base query dependencies change (filters, etc.), but NOT when page changes
   const baseQueryKey = queryKey.slice(0, -2);
   useEffect(() => {
-    if (autoResetPageOnChange && JSON.stringify(baseQueryKey) !== JSON.stringify(prevBaseQueryKey)) {
+    if (
+      autoResetPageOnChange &&
+      JSON.stringify(baseQueryKey) !== JSON.stringify(prevBaseQueryKey)
+    ) {
       console.log("Base query key changed, resetting page to 1");
       setCurrentPage(1);
       setPrevBaseQueryKey(baseQueryKey);
@@ -99,16 +104,20 @@ export function PaginatedLayout<T>({
       <div className="flex-1 min-h-0">
         {children(items, isLoading, error, refetch)}
       </div>
-      
+
       {showPagination && totalCount > 0 && (
-        <div className={`mt-4 flex justify-center items-center ${paginationClassName || ""}`}
-             style={{ width: '80%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <div
+          className={`mt-4 flex justify-center items-center ${paginationClassName || ""}`}
+          style={{ width: "40%", marginLeft: "auto", marginRight: "auto" }}
+        >
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
             pageSize={showPageSizeSelector ? pageSize : undefined}
-            onPageSizeChange={showPageSizeSelector ? handlePageSizeChange : undefined}
+            onPageSizeChange={
+              showPageSizeSelector ? handlePageSizeChange : undefined
+            }
             totalItems={totalCount}
           />
         </div>

@@ -246,13 +246,16 @@ class Command(BaseCommand):
     def generate_parts(self):
         self.stdout.write("Generating parts...")
         all_product_models = list(self.ProductModel.objects.all())
-        
+
         parts_to_create = []
         device_parts = {
             "phone": ["Screen Assembly", "Battery Pack", "Charging Port"],
             "laptop": ["Screen Assembly", "Keyboard", "SSD Drive"],
             "tablet": ["Screen Assembly", "Battery Pack", "Digitizer"],
         }
+
+        # Track which models are associated with which parts for later M2M assignment
+        part_model_associations = []
 
         for model in all_product_models:
             device_type_slug = model.series.device_type.slug if model.series and model.series.device_type else "phone"
@@ -263,19 +266,27 @@ class Command(BaseCommand):
                 while self.Part.objects.filter(sku=sku).exists():
                     sku = f"SKU-{random.randint(10000, 99999)}"
 
-                parts_to_create.append(
-                    self.Part(
-                        name=f"{model.brand.name} {model.name} {part_name}",
-                        ean13=f"{random.randint(1000000000000, 9999999999999)}",
-                        sku=sku,
-                        price=Decimal(f"{random.randint(10, 500)}.00"),
-                        brand=model.brand,
-                        model=model,
-                    )
+                part = self.Part(
+                    name=f"{model.brand.name} {model.name} {part_name}",
+                    ean13=f"{random.randint(1000000000000, 9999999999999)}",
+                    sku=sku,
+                    price=Decimal(f"{random.randint(10, 500)}.00")},
+                    brand=model.brand,
                 )
+                parts_to_create.append(part)
+                # Track the association for later
+                part_model_associations.append((part, model))
 
-        self.Part.objects.bulk_create(parts_to_create)
-        self.stdout.write(self.style.SUCCESS(f"{len(parts_to_create)} new parts generated."))
+        created_parts = self.Part.objects.bulk_create(parts_to_create)
+
+        # Now assign the compatible models after the parts are created
+        # Use the tracked associations
+        for part, model in part_model_associations:
+            # Find the created part instance that matches our original
+            created_part = next(p for p in created_parts if p.sku == part.sku)
+            created_part.compatible_models.add(model)
+
+        self.stdout.write(self.style.SUCCESS(f"{len(created_parts)} new parts generated."))
 
     def generate_locations(self):
         locations_data = ["Main Warehouse", "Downtown Store", "Tech Lab"]
@@ -341,6 +352,19 @@ class Command(BaseCommand):
                     if part:
                         issue.associated_part = part
                         issue.category_type = 'part_based'
+
+                        # Also add compatible parts to the new many-to-many relationship
+                        # Get all parts that are compatible with the device types associated with this issue
+                        compatible_parts = self.Part.objects.filter(
+                            compatible_models__series__device_type__in=issue.device_types.all()
+                        ).distinct()
+
+                        # Randomly select some compatible parts (between 1 and 3) for this issue
+                        if compatible_parts.count() >= 1:
+                            selected_parts = compatible_parts.order_by('?')[:random.randint(1, min(3, compatible_parts.count()))]
+                            for compatible_part in selected_parts:
+                                issue.compatible_parts.add(compatible_part)
+
                         issue.save()
 
     def generate_quality_tiers(self):

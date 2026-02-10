@@ -82,7 +82,11 @@ populate-full-dataset:
 	@docker compose exec backend python manage.py import_smart_devices_csv
 	@echo "${YELLOW}Step 3: Creating basic users and profiles...${NC}"
 	@docker compose exec backend python manage.py create_basic_users
-	@echo "${YELLOW}Step 4: Generating remaining tech data with repairs and payments...${NC}"
+	@echo "${YELLOW}Step 4: Creating migrations for updated models...${NC}"
+	@docker compose exec backend python manage.py makemigrations repairs
+	@echo "${YELLOW}Step 5: Applying model migrations...${NC}"
+	@docker compose exec backend python manage.py migrate
+	@echo "${YELLOW}Step 6: Generating remaining tech data with repairs, payments, and discounts...${NC}"
 	@docker compose exec backend python manage.py generate_remaining_tech_data
 	@echo "${GREEN}Full dataset populated successfully!${NC}"
 

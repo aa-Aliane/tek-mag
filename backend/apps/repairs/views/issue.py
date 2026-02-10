@@ -26,7 +26,11 @@ class IssueFilter(filters.FilterSet):
 
 
 class IssueViewSet(viewsets.ModelViewSet):
-    queryset = Issue.objects.all()
+    queryset = Issue.objects.all().prefetch_related(
+        "device_types", 
+        "service_pricing", 
+        "compatible_parts"
+    )
     serializer_class = IssueSerializer
     filter_backends = [filters.DjangoFilterBackend, drf_filters.SearchFilter]
     filterset_class = IssueFilter
@@ -37,17 +41,24 @@ class IssueViewSet(viewsets.ModelViewSet):
     def pricing_options(self, request, pk=None):
         """
         Get pricing options for a specific issue
-        For part-based issues: returns available quality tiers
+        For part-based issues: returns available quality tiers for all compatible parts
         For service-based issues: returns service pricing details
         """
         issue = self.get_object()
+        model_id = request.query_params.get('model_id')
         
-        if issue.category_type == 'part_based' and issue.associated_part:
-            # For part-based issues, return available quality tiers for the part
-            quality_tiers = PartQualityTier.objects.filter(
-                part=issue.associated_part
-            )
-            serializer = PartQualityTierSerializer(quality_tiers, many=True)
+        if issue.category_type == 'part_based':
+            # Get all parts compatible with this issue
+            part_ids = list(issue.compatible_parts.values_list('id', flat=True))
+            if issue.associated_part_id:
+                part_ids.append(issue.associated_part_id)
+            
+            quality_tiers = PartQualityTier.objects.filter(part_id__in=part_ids)
+            
+            if model_id:
+                quality_tiers = quality_tiers.filter(part__compatible_models__id=model_id)
+                
+            serializer = PartQualityTierSerializer(quality_tiers.distinct(), many=True)
             return Response(serializer.data)
         elif issue.category_type == 'service_based':
             # For service-based issues, return service pricing
@@ -86,11 +97,30 @@ class IssueViewSet(viewsets.ModelViewSet):
                           status=status.HTTP_400_BAD_REQUEST)
 
 
+class PartQualityTierFilter(filters.FilterSet):
+    issue_id = filters.NumberFilter(method='filter_by_issue')
+    model_id = filters.NumberFilter(method='filter_by_model')
+
+    class Meta:
+        model = PartQualityTier
+        fields = ['part', 'quality_tier', 'availability_status', 'issue_id', 'model_id']
+
+    def filter_by_issue(self, queryset, name, value):
+        # Filter tiers for parts that are compatible with the given issue
+        return queryset.filter(
+            Q(part__issues__id=value) | Q(part__related_issues__id=value)
+        ).distinct()
+
+    def filter_by_model(self, queryset, name, value):
+        # Filter tiers for parts that are compatible with the given product model
+        return queryset.filter(part__compatible_models__id=value).distinct()
+
+
 class PartQualityTierViewSet(viewsets.ModelViewSet):
-    queryset = PartQualityTier.objects.all()
+    queryset = PartQualityTier.objects.all().select_related('part')
     serializer_class = PartQualityTierSerializer
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_fields = ['part', 'quality_tier', 'availability_status']
+    filterset_class = PartQualityTierFilter
 
 
 class ServicePricingViewSet(viewsets.ModelViewSet):

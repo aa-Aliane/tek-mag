@@ -1,11 +1,18 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Wrench, Users, Archive, ShoppingCart, Package, Calendar } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/layout/theme-toggle"
-import { UserRoleSelector } from "@/components/layout/user-role-selector"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Wrench,
+  Users,
+  Archive,
+  ShoppingCart,
+  Package,
+  Calendar,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { UserRoleSelector } from "@/components/layout/user-role-selector";
 
 const navigation = [
   { name: "Réparations", href: "/", icon: Wrench },
@@ -14,24 +21,33 @@ const navigation = [
   { name: "Commande Pièces", href: "/commandes", icon: ShoppingCart },
   { name: "Stock", href: "/stock", icon: Package },
   { name: "Calendrier", href: "/calendrier", icon: Calendar },
-]
+];
 
-export function Sidebar() {
-  const pathname = usePathname()
+interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+export function Sidebar({ className, ...props }: Props) {
+  const pathname = usePathname();
 
   return (
-    <div className="hidden lg:flex h-screen w-64 flex-col border-r border-border bg-card">
+    <div
+      className={cn(
+        "hidden lg:flex h-screen flex-col border-r border-border bg-card",
+        className,
+      )}
+      {...props}
+    >
       <div className="flex h-16 items-center justify-between border-b border-border px-6">
         <div className="flex items-center">
           <Wrench className="h-6 w-6 text-primary" />
-          <h1 className="ml-3 text-lg font-semibold text-foreground">{"TekMag"}</h1>
+          <h1 className="ml-3 text-lg font-semibold text-foreground">
+            {"TekMag"}
+          </h1>
         </div>
         <ThemeToggle />
       </div>
 
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
@@ -46,7 +62,7 @@ export function Sidebar() {
               <item.icon className="h-5 w-5" />
               {item.name}
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -55,5 +71,5 @@ export function Sidebar() {
         <div className="text-xs text-muted-foreground">Version 1.0.0</div>
       </div>
     </div>
-  )
+  );
 }

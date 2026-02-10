@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import api from "@/lib/api/client";
-import { type Repair, type PaginatedResponse, type DeviceType, type Payment } from "@/types";
+import { type Repair, type PaginatedResponse, type DeviceType, type Payment, type Discount } from "@/types";
 
 // Fetch all repairs
 const fetchRepairs = async (page = 1, status?: string, client?: number, deviceType?: DeviceType, excludeStatus?: string): Promise<PaginatedResponse<Repair>> => {
@@ -97,6 +97,38 @@ export const usePayments = (repairId: string) => {
   return useQuery<Payment[], Error>({
     queryKey: ["payments", repairId],
     queryFn: () => fetchPayments(repairId),
+    enabled: !!repairId,
+  });
+};
+
+// Discount functions
+const createDiscount = async (repairId: string, data: Partial<Discount>): Promise<Discount> => {
+  const response = await api.post(`/repairs/repairs/${repairId}/discounts/`, data);
+  return response.data;
+};
+
+const fetchDiscounts = async (repairId: string): Promise<Discount[]> => {
+  const response = await api.get(`/repairs/repairs/${repairId}/discounts/`);
+  return response.data;
+};
+
+export const useCreateDiscount = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ repairId, data }: { repairId: string; data: Partial<Discount> }) => 
+      createDiscount(repairId, data),
+    onSuccess: (_, { repairId }) => {
+      queryClient.invalidateQueries({ queryKey: ["repairs"] });
+      queryClient.invalidateQueries({ queryKey: ["repair", repairId] });
+      queryClient.invalidateQueries({ queryKey: ["discounts", repairId] });
+    },
+  });
+};
+
+export const useDiscounts = (repairId: string) => {
+  return useQuery<Discount[], Error>({
+    queryKey: ["discounts", repairId],
+    queryFn: () => fetchDiscounts(repairId),
     enabled: !!repairId,
   });
 };

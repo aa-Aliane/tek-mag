@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RepairsTable, RepairDetails } from "@/components/features/repairs";
-import { useUpdateRepair } from "@/hooks/use-repairs";
+import { useUpdateRepair, useCreateDiscount } from "@/hooks/use-repairs";
 import {
   type Repair,
   type RepairStatus,
@@ -25,16 +25,15 @@ import api from "@/lib/api/client";
 export default function ArchivesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<RepairStatus | "all">("prete"); // Default to "prete" for archives
-  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceType | "all">(
-    "all",
-  );
   const updateRepair = useUpdateRepair();
-
+  const createDiscount = useCreateDiscount();
+  const { currentUser } = useUserRole();
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<RepairStatus | "all">("all");
+  const [deviceTypeFilter, setDeviceTypeFilter] = useState<DeviceType | "all">("all");
   const [selectedRepair, setSelectedRepair] = useState<Repair | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const { currentUser } = useUserRole();
 
   // Build query key for archives (only "prete" status)
   const baseQueryKey = ["archives", statusFilter, deviceTypeFilter];
@@ -180,6 +179,35 @@ export default function ArchivesPage() {
     toast.error("Suppression de paiement non supportée pour le moment");
   };
 
+  const handleAddDiscount = (
+    repair: Repair,
+    amount: number,
+    type: "percentage" | "fixed",
+    value: string,
+    note?: string,
+  ) => {
+    createDiscount.mutate(
+      {
+        repairId: String(repair.id),
+        data: {
+          repair: String(repair.id),
+          amount,
+          reason: note || `Remise ${type === "percentage" ? `${value}%` : `${value}€`}`,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Remise appliquée avec succès");
+          queryClient.invalidateQueries({ queryKey: ["archives"] });
+          queryClient.invalidateQueries({ queryKey: ["repair", repair.id.toString()] });
+        },
+        onError: () => {
+          toast.error("Erreur lors de l'application de la remise");
+        },
+      }
+    );
+  };
+
   const handleViewDetails = (repair: Repair) => {
     setSelectedRepair(repair);
     setIsDetailsOpen(true);
@@ -258,6 +286,7 @@ export default function ArchivesPage() {
                 onStatusChange={handleStatusChange}
                 onSchedule={handleSchedule}
                 onAddPayment={handleAddPayment}
+                onAddDiscount={handleAddDiscount}
                 onRestitute={handleRestitution}
                 onDeletePayment={handleDeletePayment}
                 onMarkRecovered={handleMarkRecovered}

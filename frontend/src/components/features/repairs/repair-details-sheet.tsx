@@ -18,6 +18,7 @@ interface RepairDetailsSheetProps {
   ) => void
   onSchedule?: (repair: Repair, date: Date) => void
   onAddPayment?: (repair: Repair, amount: number, method: PaymentMethod, note?: string) => void
+  onAddDiscount?: (repair: Repair, amount: number, type: "percentage" | "fixed", value: string, note?: string) => void
   onDeletePayment?: (repair: Repair, paymentId: string) => void
   onMarkRecovered?: (repair: Repair) => void
   currentUserName: string
@@ -31,6 +32,7 @@ export function RepairDetailsSheet({
   onStatusChange,
   onSchedule,
   onAddPayment,
+  onAddDiscount,
   onDeletePayment,
   onMarkRecovered,
   currentUserName,
@@ -50,6 +52,7 @@ export function RepairDetailsSheet({
           onStatusChange={onStatusChange}
           onSchedule={onSchedule}
           onAddPayment={onAddPayment}
+          onAddDiscount={onAddDiscount}
           onDeletePayment={onDeletePayment}
           onMarkRecovered={onMarkRecovered}
           currentUserName={currentUserName}

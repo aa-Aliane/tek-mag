@@ -12,7 +12,7 @@ import type { IssuesAndCostSectionProps } from "./types";
 
 export function IssuesAndCostSection({
   repair,
-  totalCostValue,
+  basePrice,
   totalPaid,
   remaining,
   cardPayment,
@@ -27,52 +27,69 @@ export function IssuesAndCostSection({
 
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          {repair.issues?.map((issue, idx) => (
+          {repair.repair_issues?.map((repairIssue, idx) => (
             <Badge key={idx} variant="secondary" className="text-sm">
-              {issue}
+              {repairIssue.issue?.name || `Issue #${repairIssue.issue_id}`}
             </Badge>
           ))}
         </div>
 
-        {repair.issueDescription && (
+        {repair.description && (
           <div className="bg-muted/30 rounded-lg p-4">
             <p className="text-sm font-medium mb-1 text-muted-foreground">
               Description détaillée
             </p>
-            <p className="text-sm">{repair.issueDescription}</p>
+            <p className="text-sm">{repair.description}</p>
           </div>
         )}
 
-        {(totalCostValue > 0 || cardPayment > 0 || cashPayment > 0) && (
+        {basePrice > 0 && (
           <div className="space-y-3">
-            {totalCostValue > 0 && (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="font-semibold text-gray-700">
-                    Coût total
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold text-gray-700">Coût total</span>
+                <span className="text-2xl font-bold text-blue-600">
+                  {Number(basePrice).toFixed(2)} €
+                </span>
+              </div>
+
+              {/* Show discounts if any */}
+              {repair.total_discounts > 0 && (
+                <div className="flex justify-between text-sm text-orange-600 mb-2">
+                  <span>Remises</span>
+                  <span>-{repair.total_discounts} €</span>
+                </div>
+              )}
+
+              {/* Show final price */}
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium text-gray-600">Prix final</span>
+                <span className="text-xl font-bold text-green-600">
+                  {Number(repair.final_price || basePrice).toFixed(2)} €
+                </span>
+              </div>
+
+              {/* Progress bar showing payment progress */}
+              <div className="mt-4">
+                <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <span>
+                    Payé: {Number(repair.total_paid || totalPaid).toFixed(2)} €
                   </span>
-                  <span className="text-2xl font-bold text-blue-600">
-                    {totalCostValue.toFixed(2)} €
+                  <span>
+                    Reste:{" "}
+                    {Number(repair.remaining_balance || remaining).toFixed(2)} €
                   </span>
                 </div>
-
-                {/* Progress bar showing payment progress */}
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
-                    <span>Payé: {totalPaid.toFixed(2)} €</span>
-                    <span>Reste: {remaining.toFixed(2)} €</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
-                      style={{
-                        width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%`,
-                      }}
-                    ></div>
-                  </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
+                    style={{
+                      width: `${Math.min(100, (totalPaid / basePrice) * 100)}%`,
+                    }}
+                  ></div>
                 </div>
               </div>
-            )}
+            </div>
 
             {(cardPayment > 0 || cashPayment > 0) && (
               <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
@@ -130,7 +147,7 @@ export function IssuesAndCostSection({
                         Total payé
                       </span>
                       <span className="text-lg font-bold text-green-600">
-                        {totalPaid.toFixed(2)} €
+                        {Number(totalPaid).toFixed(2)} €
                       </span>
                     </div>
 
@@ -140,7 +157,7 @@ export function IssuesAndCostSection({
                           Reste à payer
                         </span>
                         <span className="text-lg font-bold text-red-500">
-                          {remaining.toFixed(2)} €
+                          {Number(remaining).toFixed(2)} €
                         </span>
                       </div>
                     ) : (

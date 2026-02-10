@@ -56,13 +56,8 @@ class Part(models.Model):
         related_name="parts",
         verbose_name="Brand",
     )
-    model = models.ForeignKey(
-        ProductModel,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="parts",
-        verbose_name="Model",
+    compatible_models = models.ManyToManyField(
+        ProductModel, related_name="parts", verbose_name="Compatible Models", blank=True
     )
 
     # Timestamps

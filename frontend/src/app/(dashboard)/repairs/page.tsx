@@ -50,6 +50,7 @@ export default function RepairsPage() {
     handleLocationChange,
     handleRestitution,
     handleAddPayment,
+    handleAddDiscount,
     handleDeletePayment,
     handleMarkRecovered,
   } = useRepairManagement();
@@ -101,6 +102,7 @@ export default function RepairsPage() {
             onStatusChange={handleStatusChange}
             onSchedule={handleSchedule}
             onAddPayment={handleAddPayment}
+            onAddDiscount={handleAddDiscount}
             onRestitute={handleRestitution}
             onDeletePayment={handleDeletePayment}
             onMarkRecovered={handleMarkRecovered}

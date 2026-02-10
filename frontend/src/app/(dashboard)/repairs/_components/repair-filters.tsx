@@ -32,15 +32,17 @@ export function RepairFilters({
   onStatusChange,
   onLocationChange,
 }: RepairFiltersProps) {
-  const filteredRepairs = repairs.filter((repair: Repair) => repair.status !== "prete");
+  const filteredRepairs = repairs.filter(
+    (repair: Repair) => repair.status !== "prete",
+  );
   console.log("RepairFilters debug:", {
     totalRepairs: repairs.length,
     filteredRepairs: filteredRepairs.length,
     statusFilter,
     deviceTypeFilter,
-    searchTerm
+    searchTerm,
   });
-  
+
   return (
     <div className="flex-1 min-w-0 transition-all duration-300">
       <RepairsTable

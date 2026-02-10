@@ -1,6 +1,7 @@
 # backend/apps/tech/management/commands/create_basic_users.py
 import random
 from datetime import datetime, timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -11,28 +12,25 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        
+
         from django.apps import apps
+
         self.Profile = apps.get_model("accounts", "Profile")
 
-        self.stdout.write(
-            self.style.SUCCESS("Creating basic users and profiles...")
-        )
+        self.stdout.write(self.style.SUCCESS("Creating basic users and profiles..."))
 
         with transaction.atomic():
             # Create admin user if it doesn't exist
             admin_user = self.create_admin_superuser(User)
-            
+
             # Create regular users
             users = self.generate_users(User, num_users=10)  # Create fewer users
-            
+
             # Create profiles for all users
             all_users = [admin_user] + users
             self.generate_profiles(all_users)
 
-        self.stdout.write(
-            self.style.SUCCESS("Basic user data generation complete!")
-        )
+        self.stdout.write(self.style.SUCCESS("Basic user data generation complete!"))
 
     def create_admin_superuser(self, User):
         self.stdout.write("Creating admin superuser...")
@@ -49,17 +47,65 @@ class Command(BaseCommand):
     def generate_users(self, User, num_users):
         self.stdout.write(f"Generating {num_users} additional users...")
         users = []
-        
+
+        from django.utils import timezone
+
         # More diverse names
         first_names = [
-            "Alice", "Bob", "Carol", "David", "Emma", "Frank", "Grace", "Henry", "Ivy", "Jack",
-            "Kate", "Liam", "Mia", "Noah", "Olivia", "Paul", "Quinn", "Rachel", "Steve", "Tina",
-            "Uma", "Victor", "Wendy", "Xavier", "Yara", "Zack"
+            "Alice",
+            "Bob",
+            "Carol",
+            "David",
+            "Emma",
+            "Frank",
+            "Grace",
+            "Henry",
+            "Ivy",
+            "Jack",
+            "Kate",
+            "Liam",
+            "Mia",
+            "Noah",
+            "Olivia",
+            "Paul",
+            "Quinn",
+            "Rachel",
+            "Steve",
+            "Tina",
+            "Uma",
+            "Victor",
+            "Wendy",
+            "Xavier",
+            "Yara",
+            "Zack",
         ]
         last_names = [
-            "Adams", "Brown", "Clark", "Davis", "Evans", "Foster", "Garcia", "Harris", "Ivanov", "Johnson",
-            "King", "Lee", "Martin", "Nelson", "Owens", "Perez", "Roberts", "Taylor", "Upton", "Vance",
-            "Wright", "Young", "Zhang", "Allen", "Bell", "Cooper"
+            "Adams",
+            "Brown",
+            "Clark",
+            "Davis",
+            "Evans",
+            "Foster",
+            "Garcia",
+            "Harris",
+            "Ivanov",
+            "Johnson",
+            "King",
+            "Lee",
+            "Martin",
+            "Nelson",
+            "Owens",
+            "Perez",
+            "Roberts",
+            "Taylor",
+            "Upton",
+            "Vance",
+            "Wright",
+            "Young",
+            "Zhang",
+            "Allen",
+            "Bell",
+            "Cooper",
         ]
 
         for i in range(num_users):
@@ -79,9 +125,7 @@ class Command(BaseCommand):
                 email = f"{email_base}{k}@example.com"
                 k += 1
 
-            import pytz
-            timezone = pytz.timezone('UTC')  # Use UTC or get from Django settings
-            date_joined = timezone.localize(datetime.now() - timedelta(days=random.randint(1, 180)))
+            date_joined = timezone.now() - timedelta(days=random.randint(1, 180))
             is_active = random.choice([True] * 9 + [False])  # 90% active
 
             user = User(
@@ -127,7 +171,13 @@ class Command(BaseCommand):
                 user_type = random.choice(["Client", "Staff"])
 
             phone_number = f"+33-{random.randint(1,9)}-{random.randint(10,99)}-{random.randint(10,99)}-{random.randint(10,99)}-{random.randint(10,99)}"
-            address = f"{random.randint(1, 999)} {random.choice(['Main St', 'Oak Ave', 'Pine Rd', 'Elm Blvd'])}, {random.choice(['Paris', 'Lyon', 'Marseille', 'Lille'])}, France"
+            
+            # Generate structured address
+            street_address = f"{random.randint(1, 999)} {random.choice(['Main St', 'Oak Ave', 'Pine Rd', 'Elm Blvd'])}"
+            city = random.choice(['Paris', 'Lyon', 'Marseille', 'Lille'])
+            postal_code = f"{random.randint(10000, 99999)}"
+            country = "France"
+
             date_of_birth = datetime.now() - timedelta(
                 days=random.randint(365 * 18, 365 * 70)
             )
@@ -137,7 +187,10 @@ class Command(BaseCommand):
                     user=user,
                     type=user_type,
                     phone_number=phone_number,
-                    address=address,
+                    street_address=street_address,
+                    city=city,
+                    postal_code=postal_code,
+                    country=country,
                     date_of_birth=date_of_birth,
                     profile_picture="profile_pics/default_profile.png",
                 )
@@ -145,6 +198,8 @@ class Command(BaseCommand):
 
         if profiles_to_create:
             self.Profile.objects.bulk_create(profiles_to_create)
-            self.stdout.write(self.style.SUCCESS(f"{len(profiles_to_create)} profiles generated."))
+            self.stdout.write(
+                self.style.SUCCESS(f"{len(profiles_to_create)} profiles generated.")
+            )
         else:
             self.stdout.write(self.style.WARNING("No new profiles to generate."))

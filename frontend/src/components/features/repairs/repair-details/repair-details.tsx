@@ -15,7 +15,7 @@ import {
 import { StatusChangeDialog } from "@/components/features/commands";
 import { ScheduleRepairDialog } from "@/components/features/repairs";
 import { printRepairTicket } from "@/lib/print-utils";
-import type { RepairStatus } from "@/types";
+import type { RepairStatus, Repair } from "@/types";
 
 import { RepairDetailsHeader } from "./header";
 import { DeviceInfoSection } from "./device-info-section";
@@ -25,6 +25,7 @@ import { AdditionalInfoSection } from "./additional-info-section";
 import { DatesInfoSection } from "./dates-info-section";
 import { StatusHistorySection } from "./status-history-section";
 import { PaymentForm } from "./payment-form";
+import { DiscountForm } from "./discount-form";
 import { calculatePayments, formatDate } from "./utils";
 import type { RepairDetailsProps } from "./types";
 
@@ -35,6 +36,7 @@ export function RepairDetails({
   onStatusChange,
   onSchedule,
   onAddPayment,
+  onAddDiscount,
   onRestitute,
   onDeletePayment,
   onMarkRecovered,
@@ -43,6 +45,7 @@ export function RepairDetails({
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isPaymentFormVisible, setIsPaymentFormVisible] = useState(false);
+  const [isDiscountFormVisible, setIsDiscountFormVisible] = useState(false);
   const [isRecoveryDialogOpen, setIsRecoveryDialogOpen] = useState(false);
   const [isPaymentWarningOpen, setIsPaymentWarningOpen] = useState(false);
 
@@ -107,12 +110,15 @@ export function RepairDetails({
           onSchedule={() => setIsScheduleDialogOpen(true)}
           onMarkRecovered={handleRecoveryClick}
           onAddPayment={() => setIsPaymentFormVisible(true)}
+          onAddDiscount={() => setIsDiscountFormVisible(true)}
           onPrint={handlePrint}
           isPaymentComplete={isPaymentComplete}
           remaining={remaining}
-          totalCostValue={totalCostValue}
+          basePrice={repair.base_price || 0}
           isPaymentFormVisible={isPaymentFormVisible}
           setIsPaymentFormVisible={setIsPaymentFormVisible}
+          isDiscountFormVisible={isDiscountFormVisible}
+          setIsDiscountFormVisible={setIsDiscountFormVisible}
         />
 
         {/* Content */}
@@ -122,8 +128,8 @@ export function RepairDetails({
 
             <IssuesAndCostSection
               repair={repair}
-              totalCostValue={totalCostValue}
-              totalPaid={totalPaid}
+              basePrice={repair.base_price || 0}
+              totalPaid={repair.total_paid || 0}
               remaining={remaining}
               cardPayment={cardPayment}
               cashPayment={cashPayment}
@@ -156,9 +162,18 @@ export function RepairDetails({
           repair={repair}
           onClose={() => setIsPaymentFormVisible(false)}
           onAddPayment={onAddPayment}
-          totalCostValue={totalCostValue}
+          basePrice={repair.base_price}
           totalPaid={totalPaid}
           remaining={remaining}
+        />
+      )}
+
+      {/* Discount Form Overlay */}
+      {isDiscountFormVisible && (
+        <DiscountForm
+          repair={repair}
+          onClose={() => setIsDiscountFormVisible(false)}
+          onAddDiscount={onAddDiscount}
         />
       )}
 

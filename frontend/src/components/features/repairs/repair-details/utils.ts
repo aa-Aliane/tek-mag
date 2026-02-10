@@ -17,31 +17,40 @@ export const formatDate = (
 };
 
 export const calculatePayments = (repair: Repair) => {
-  const cardPayment = Number(repair.card_payment || 0);
-  const cashPayment = Number(repair.cash_payment || 0);
-  const totalPaid = cardPayment + cashPayment;
+  // Use new backend financial structure
+  const basePrice = Number(repair.base_price || 0);
+  const totalPaid = Number(repair.total_paid || 0);
+  const remainingBalance = Number(repair.remaining_balance || 0);
+  const finalPrice = Number(repair.final_price || basePrice);
 
-  const totalCostValue =
-    repair.totalCost !== undefined &&
-    repair.totalCost !== null &&
-    !isNaN(repair.totalCost)
-      ? Number(repair.totalCost)
-      : !isNaN(Number(repair.price)) && isFinite(Number(repair.price))
-        ? Number(repair.price)
-        : 0;
+  // Calculate card and cash payments from payments array if available
+  let cardPayment = 0;
+  let cashPayment = 0;
+  
+  if (repair.payments && Array.isArray(repair.payments)) {
+    repair.payments.forEach((payment) => {
+      const amount = Number(payment.amount || 0);
+      if (payment.method === "card") {
+        cardPayment += amount;
+      } else if (payment.method === "cash") {
+        cashPayment += amount;
+      }
+    });
+  } else {
+    // Fallback to legacy fields for backward compatibility
+    cardPayment = Number(repair.card_payment || 0);
+    cashPayment = Number(repair.cash_payment || 0);
+  }
 
-  const remaining =
-    repair.payments?.reduce(
-      (acc, payment) => acc - Number(payment.amount),
-      totalCostValue,
-    ) ?? totalCostValue;
-  const isPaymentComplete = remaining <= 0;
+  // Use remaining_balance from backend, or calculate as fallback
+  const remaining = remainingBalance || (finalPrice - totalPaid);
+  const isPaymentComplete = repair.payment_status === "paid" || remaining <= 0;
 
   return {
     cardPayment,
     cashPayment,
     totalPaid,
-    totalCostValue,
+    totalCostValue: finalPrice, // Use final_price as the actual cost
     remaining,
     isPaymentComplete,
   };

@@ -4,11 +4,12 @@ from apps.repairs.models.part_quality_tier import PartQualityTier
 from apps.tech.models import ProductModel
 from django.conf import settings
 from django.db import models
+from django.db.models import F, Q, Sum
 
 
 class RepairIssue(models.Model):
     """
-    Junction model to connect repairs with issues and their selected quality tiers
+    Junction model to connect repairs with issues and their selected quality tiers.
     """
 
     repair = models.ForeignKey(
@@ -33,7 +34,6 @@ class RepairIssue(models.Model):
 
     def get_price(self):
         """
-        Get the price for this issue in this repair.
         Priority: custom_price > quality_tier.price > issue.base_price
         """
         if self.custom_price:
@@ -49,14 +49,17 @@ class RepairIssue(models.Model):
 
 
 class Repair(models.Model):
+    """
+    Main Repair model. Financial totals are calculated dynamically from
+    related RepairIssue, Payment, and Discount records.
+    """
+
     uid = models.CharField(max_length=255, unique=True, verbose_name="Repair UID")
-    date = models.DateField(verbose_name="Repair Date")  # Date repair was registered
+    date = models.DateField(verbose_name="Repair Date")
     scheduled_date = models.DateField(
         null=True, blank=True, verbose_name="Scheduled Date"
-    )  # Date repair is scheduled for
-    accessories = models.TextField(
-        null=True, blank=True, verbose_name="Accessories"
-    )  # Accessories provided with the repair
+    )
+
     client = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -64,7 +67,6 @@ class Repair(models.Model):
         verbose_name="Client",
     )
 
-    # Repair status matching frontend statusConfig
     STATUS_CHOICES = [
         ("saisie", "Saisie"),
         ("en-cours", "En cours"),
@@ -75,6 +77,7 @@ class Repair(models.Model):
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default="saisie", verbose_name="Status"
     )
+
     product_model = models.ForeignKey(
         ProductModel,
         on_delete=models.SET_NULL,
@@ -83,66 +86,22 @@ class Repair(models.Model):
         related_name="repairs",
         verbose_name="Product Model",
     )
+
     description = models.TextField(verbose_name="Description of Breakdown")
     password = models.CharField(
         max_length=255, blank=True, null=True, verbose_name="Device Password"
     )
-    price = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00"), verbose_name="Price"
-    )
-    remise = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Remise/Discount",
-    )
-    card_payment = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Card Payment",
-    )
-    cash_payment = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Cash Payment",
-    )
+    accessories = models.TextField(null=True, blank=True, verbose_name="Accessories")
+
+    # Internal metadata
     comment = models.TextField(blank=True, null=True, verbose_name="Comment")
-    device_photo = models.ImageField(
-        upload_to="repair_photos/", blank=True, null=True, verbose_name="Device Photo"
-    )
-    file = models.FileField(
-        upload_to="repair_files/", blank=True, null=True, verbose_name="Attached File"
-    )
+    device_photo = models.ImageField(upload_to="repair_photos/", blank=True, null=True)
+    file = models.FileField(upload_to="repair_files/", blank=True, null=True)
+    is_in_store = models.BooleanField(default=False)
+    is_successful = models.BooleanField(null=True, blank=True, default=None)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    is_in_store = models.BooleanField(default=False)
-
-    is_successful = models.BooleanField(
-        null=True, blank=True, default=None, verbose_name="Réparation réussie"
-    )
-
-    @property
-    def total_paid(self):
-        """Calculate total from payment records"""
-        return self.payments.aggregate(
-            total=models.Sum('amount')
-        )['total'] or Decimal('0.00')
-
-    @property
-    def effective_price(self):
-        """Calculate price after remise"""
-        if self.remise:
-            return max(Decimal('0.00'), self.price - self.remise)
-        return self.price
-
-    @property
-    def remaining_balance(self):
-        """Calculate remaining amount after payments and remise"""
-        return max(Decimal('0.00'), self.effective_price - self.total_paid)
 
     class Meta:
         verbose_name = "Repair"
@@ -152,43 +111,55 @@ class Repair(models.Model):
     def __str__(self):
         return f"Repair {self.uid} for {self.client.username}"
 
+    # --- FINANCIAL PROPERTIES ---
+
+    @property
+    def base_price(self):
+        """Total price based on all associated issues/parts before adjustments."""
+        total = sum(issue.get_price() for issue in self.repair_issues.all())
+        return Decimal(total).quantize(Decimal("0.01"))
+
+    @property
+    def total_discounts(self):
+        """Aggregated total from the Discount model."""
+        return self.discounts.aggregate(res=Sum("amount"))["res"] or Decimal("0.00")
+
+    @property
+    def total_paid(self):
+        """Net total: (Payments) - (Refunds)."""
+        stats = self.payments.aggregate(
+            inbound=Sum("amount", filter=Q(transaction_type="payment")),
+            outbound=Sum("amount", filter=Q(transaction_type="refund")),
+        )
+        paid = stats["inbound"] or Decimal("0.00")
+        refunded = stats["outbound"] or Decimal("0.00")
+        return (paid - refunded).quantize(Decimal("0.01"))
+
     @property
     def final_price(self):
-        """Calculate final price after remise"""
-        return max(Decimal("0.00"), self.price - self.remise)
-
-    @property
-    def payment_status(self):
-        """Calculate payment status based on payments vs final price"""
-        total_paid = self.card_payment + self.cash_payment
-        final_total = self.final_price
-
-        if total_paid >= final_total:
-            return "paid"
-        elif total_paid > 0:
-            return "partial"
-        else:
-            return "unpaid"
+        """What the client actually owes (Base Price - Discounts)."""
+        return max(Decimal("0.00"), self.base_price - self.total_discounts)
 
     @property
     def remaining_balance(self):
-        """Calculate remaining amount to be paid"""
-        total_paid = self.card_payment + self.cash_payment
-        final_total = self.final_price
-        return max(Decimal("0.00"), final_total - total_paid)
+        """Remaining debt (Final Price - Net Paid)."""
+        return max(Decimal("0.00"), self.final_price - self.total_paid)
 
-    def calculate_total_price(self):
-        """
-        Calculate the total price for this repair based on all associated issues
-        """
-        total = Decimal("0.00")
-        for repair_issue in self.repair_issues.all():
-            total += repair_issue.get_price()
-        return total
+    @property
+    def payment_status(self):
+        """Dynamic status based on financial data."""
+        paid = self.total_paid
+        target = self.final_price
+
+        if target <= 0:
+            return "paid"  # No charge repairs
+        if paid >= target:
+            return "paid"
+        if paid > 0:
+            return "partial"
+        return "unpaid"
 
     def save(self, *args, **kwargs):
-        # Update the price field when saving, but only if the object already exists
-        # (related objects like repair_issues can't be accessed before the first save)
-        if self.pk:
-            self.price = self.calculate_total_price()
+        # We no longer manually set a 'price' field here.
+        # The base_price property handles it dynamically to prevent sync issues.
         super().save(*args, **kwargs)

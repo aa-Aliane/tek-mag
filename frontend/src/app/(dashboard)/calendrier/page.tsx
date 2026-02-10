@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { RepairCalendar } from "@/components/features/calendrier"
 import { RepairDetails } from "@/components/features/repairs"
-import { useRepairs, useUpdateRepair } from "@/hooks/use-repairs"
+import { useRepairs, useUpdateRepair, useCreateDiscount } from "@/hooks/use-repairs"
 import { type Repair, type RepairStatus, type RepairOutcome, type PaymentMethod } from "@/types"
 import { currentUser } from "@/components/layout/providers"
 import { SharedHeader } from '@/components/shared/shared-header';
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 export default function CalendrierPage() {
   const { data: repairsData, isLoading, isError, refetch } = useRepairs(1); // Use first page
   const updateRepair = useUpdateRepair();
+  const createDiscount = useCreateDiscount();
   const queryClient = useQueryClient(); // Add queryClient
   const [repairs, setRepairs] = useState<Repair[]>([])
   const [selectedRepair, setSelectedRepair] = useState<Repair | null>(null)
@@ -132,6 +133,35 @@ export default function CalendrierPage() {
     toast.error("Suppression de paiement non supportée pour le moment");
   };
 
+  const handleAddDiscount = (
+    repair: Repair,
+    amount: number,
+    type: "percentage" | "fixed",
+    value: string,
+    note?: string,
+  ) => {
+    createDiscount.mutate(
+      {
+        repairId: String(repair.id),
+        data: {
+          repair: String(repair.id),
+          amount,
+          reason: note || `Remise ${type === "percentage" ? `${value}%` : `${value}€`}`,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Remise appliquée avec succès");
+          queryClient.invalidateQueries({ queryKey: ["repairs"] });
+          queryClient.invalidateQueries({ queryKey: ["repair", repair.id.toString()] });
+        },
+        onError: () => {
+          toast.error("Erreur lors de l'application de la remise");
+        },
+      }
+    );
+  };
+
   const handleMarkRecovered = (repair: Repair) => {
     updateRepair.mutate(
       {
@@ -192,9 +222,10 @@ export default function CalendrierPage() {
                 onStatusChange={handleStatusChange}
                 onSchedule={handleSchedule}
                 onAddPayment={handleAddPayment}
+                onAddDiscount={handleAddDiscount}
                 onDeletePayment={handleDeletePayment}
                 onMarkRecovered={handleMarkRecovered}
-                currentUserName={currentUser.name}
+                currentUserName={currentUser.username}
               />
             </div>
           )}

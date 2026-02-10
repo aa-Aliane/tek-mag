@@ -10,7 +10,7 @@ class PartFilter(filters.FilterSet):
         fields = {
             'name': ['icontains'],
             'brand': ['exact'],
-            'model': ['exact'],
+            'compatible_models': ['exact'],
             'sku': ['exact'],
             'ean13': ['exact'],
         }

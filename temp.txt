@@ -1,3 +1,0 @@
-{
-  "error": "The path contains special characters that require a different approach to create the directory. Using a shell tool instead."
-}

@@ -30,10 +30,7 @@ interface RepairsTableProps {
     comment: string,
     notifyClient: boolean,
   ) => void;
-  onLocationChange?: (
-    repair: Repair,
-    newLocation: boolean,
-  ) => void;
+  onLocationChange?: (repair: Repair, newLocation: boolean) => void;
   statusFilter: RepairStatus | "all";
   setStatusFilter: (value: RepairStatus | "all") => void;
   deviceTypeFilter: DeviceType | "all";
@@ -174,7 +171,7 @@ export function RepairsTable({
 
       <div className="hidden lg:block rounded-lg border border-border bg-card">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-0">
             <thead className="border-b border-border bg-muted/50">
               <tr>
                 {isColumnVisible("id") && (
@@ -183,7 +180,7 @@ export function RepairsTable({
                   </th>
                 )}
                 {isColumnVisible("device") && (
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  <th className="px-3 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                     Appareil
                   </th>
                 )}
@@ -280,17 +277,9 @@ export function RepairsTable({
                   )}
                   {isColumnVisible("price") && (
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {repair.totalCost != null &&
-                      typeof repair.totalCost === "number" &&
-                      !isNaN(repair.totalCost) ? (
-                        <span className="text-sm font-semibold text-green-600 dark:text-green-400">
-                          {repair.totalCost.toFixed(2)} €
-                        </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          {repair.totalCost}
-                        </span>
-                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {repair.base_price}€
+                      </span>
                     </td>
                   )}
                   {isColumnVisible("status") && (

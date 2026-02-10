@@ -14,13 +14,20 @@ export interface RepairDetailsProps {
     newStatus: RepairStatus,
     comment: string,
     notifyClient: boolean,
-    outcome?: RepairOutcome,
+    outcome?: boolean,
   ) => void;
   onSchedule?: (repair: Repair, date: Date) => void;
   onAddPayment?: (
     repair: Repair,
     amount: number,
     method: PaymentMethod,
+    note?: string,
+  ) => void;
+  onAddDiscount?: (
+    repair: Repair,
+    amount: number,
+    type: "percentage" | "fixed",
+    value: string,
     note?: string,
   ) => void;
   onRestitute?: (repair: Repair) => void;
@@ -37,12 +44,15 @@ export interface RepairDetailsHeaderProps {
   onSchedule?: () => void;
   onMarkRecovered?: () => void;
   onAddPayment?: () => void;
+  onAddDiscount?: () => void;
   onPrint: () => void;
   isPaymentComplete: boolean;
   remaining: number;
-  totalCostValue: number;
+  basePrice: number;
   isPaymentFormVisible: boolean;
   setIsPaymentFormVisible: (visible: boolean) => void;
+  isDiscountFormVisible: boolean;
+  setIsDiscountFormVisible: (visible: boolean) => void;
 }
 
 export interface DeviceInfoSectionProps {
@@ -51,7 +61,7 @@ export interface DeviceInfoSectionProps {
 
 export interface IssuesAndCostSectionProps {
   repair: Repair;
-  totalCostValue: number;
+  basePrice: number;
   totalPaid: number;
   remaining: number;
   cardPayment: number;
@@ -91,7 +101,19 @@ export interface PaymentFormProps {
     method: PaymentMethod,
     note?: string,
   ) => void;
-  totalCostValue: number;
+  basePrice: number;
   totalPaid: number;
   remaining: number;
+}
+
+export interface DiscountFormProps {
+  repair: Repair;
+  onClose: () => void;
+  onAddDiscount?: (
+    repair: Repair,
+    amount: number,
+    type: "percentage" | "fixed",
+    value: string,
+    note?: string,
+  ) => void;
 }

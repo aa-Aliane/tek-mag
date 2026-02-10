@@ -8,9 +8,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="relative">
       <UserRoleProvider>
         <MobileNav />
-        <div className="flex h-screen">
-          <Sidebar />
-          <main className="flex-1 relative  overflow-auto pt-0 lg:pt-0">
+        <div className="flex h-screen max-w-screen">
+          <Sidebar className="w-[15%]" />
+          <main className="flex-1 relative  overflow-auto pt-0 lg:pt-0 max-w-[85%]">
             {children}
           </main>
         </div>

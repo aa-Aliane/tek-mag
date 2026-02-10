@@ -1,6 +1,10 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useUpdateRepair, useCreatePayment } from "@/hooks/use-repairs";
+import {
+  useUpdateRepair,
+  useCreatePayment,
+  useCreateDiscount,
+} from "@/hooks/use-repairs";
 import { toast } from "sonner";
 import type { Repair, RepairStatus, PaymentMethod } from "@/types";
 
@@ -8,13 +12,14 @@ export function useRepairManagement() {
   const queryClient = useQueryClient();
   const updateRepair = useUpdateRepair();
   const createPayment = useCreatePayment();
+  const createDiscount = useCreateDiscount();
 
   const handleStatusChange = useCallback(
     (
       repair: Repair,
       newStatus: RepairStatus,
       comment: string,
-      outcome?: boolean
+      outcome?: boolean,
     ) => {
       updateRepair.mutate(
         {
@@ -35,10 +40,10 @@ export function useRepairManagement() {
             toast.error("Erreur lors de la mise à jour du statut");
             console.error(error);
           },
-        }
+        },
       );
     },
-    [updateRepair]
+    [updateRepair],
   );
 
   const handleQuickStatusChange = useCallback(
@@ -46,11 +51,11 @@ export function useRepairManagement() {
       repair: Repair,
       newStatus: RepairStatus,
       comment: string,
-      notifyClient: boolean
+      notifyClient: boolean,
     ) => {
       handleStatusChange(repair, newStatus, comment, notifyClient);
     },
-    [handleStatusChange]
+    [handleStatusChange],
   );
 
   const handleSchedule = useCallback(
@@ -70,10 +75,10 @@ export function useRepairManagement() {
           onError: () => {
             toast.error("Erreur lors de la planification");
           },
-        }
+        },
       );
     },
-    [updateRepair]
+    [updateRepair],
   );
 
   const handleLocationChange = useCallback(
@@ -87,7 +92,9 @@ export function useRepairManagement() {
         },
         {
           onSuccess: () => {
-            toast.success(`Localisation mise à jour: ${isInStore ? "En magasin" : "Chez client"}`);
+            toast.success(
+              `Localisation mise à jour: ${isInStore ? "En magasin" : "Chez client"}`,
+            );
             queryClient.invalidateQueries({ queryKey: ["repairs"] });
             queryClient.invalidateQueries({
               queryKey: ["repair", repair.id.toString()],
@@ -96,10 +103,10 @@ export function useRepairManagement() {
           onError: () => {
             toast.error("Erreur lors de la mise à jour de la localisation");
           },
-        }
+        },
       );
     },
-    [updateRepair, queryClient]
+    [updateRepair, queryClient],
   );
 
   const handleRestitution = useCallback(
@@ -108,7 +115,7 @@ export function useRepairManagement() {
       updateData.is_in_store = false;
       updateRepair.mutate(
         {
-          id: repair.id,
+          id: String(repair.id),
           data: updateData,
         },
         {
@@ -119,10 +126,10 @@ export function useRepairManagement() {
               queryKey: ["repair", repair.id.toString()],
             });
           },
-        }
+        },
       );
     },
-    [updateRepair, queryClient]
+    [updateRepair, queryClient],
   );
 
   const handleAddPayment = useCallback(
@@ -131,6 +138,7 @@ export function useRepairManagement() {
         {
           repairId: String(repair.id),
           data: {
+            repair: String(repair.id),
             amount,
             method,
             note,
@@ -138,22 +146,61 @@ export function useRepairManagement() {
         },
         {
           onSuccess: () => {
+            queryClient.invalidateQueries({
+              queryKey: ["repairs"],
+            });
+
+            queryClient.invalidateQueries({
+              queryKey: ["repair", String(repair.id)],
+            });
             toast.success("Paiement ajouté avec succès");
           },
           onError: () => {
             toast.error("Erreur lors de l'ajout du paiement");
           },
-        }
+        },
       );
     },
-    [createPayment]
+    [createPayment],
+  );
+
+  const handleAddDiscount = useCallback(
+    (
+      repair: Repair,
+      amount: number,
+      type: "percentage" | "fixed",
+      value: string,
+      note?: string,
+    ) => {
+      createDiscount.mutate(
+        {
+          repairId: String(repair.id),
+          data: {
+            repair: String(repair.id),
+            amount,
+            reason:
+              note ||
+              `Remise ${type === "percentage" ? `${value}%` : `${value}€`}`,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.success("Remise appliquée avec succès");
+          },
+          onError: () => {
+            toast.error("Erreur lors de l'application de la remise");
+          },
+        },
+      );
+    },
+    [createDiscount],
   );
 
   const handleDeletePayment = useCallback(
     (repair: Repair, paymentId: string) => {
       toast.error("Suppression de paiement non supportée pour le moment");
     },
-    []
+    [],
   );
 
   const handleMarkRecovered = useCallback(
@@ -173,10 +220,10 @@ export function useRepairManagement() {
           onError: () => {
             toast.error("Erreur lors de la mise à jour");
           },
-        }
+        },
       );
     },
-    [updateRepair]
+    [updateRepair],
   );
 
   return {
@@ -186,6 +233,7 @@ export function useRepairManagement() {
     handleLocationChange,
     handleRestitution,
     handleAddPayment,
+    handleAddDiscount,
     handleDeletePayment,
     handleMarkRecovered,
   };

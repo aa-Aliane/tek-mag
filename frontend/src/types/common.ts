@@ -1,4 +1,4 @@
-import { type Part } from "./part";
+import { type Part as PartType } from "./part";
 
 export type DeviceType = "smartphone" | "tablet" | "computer" | "other";
 export type RepairStatus = "saisie" | "en-cours" | "prete" | "en-attente";
@@ -11,16 +11,25 @@ export type PaymentStatus = "unpaid" | "partial" | "paid";
 // Payment interface for the new payment system
 export interface Payment {
   id: string;
+  repair: string;
   amount: number;
   method: PaymentMethod;
   note?: string;
   remise_type?: "percentage" | "fixed" | "none";
   remise_value?: number;
   is_rounding?: boolean;
-  original_amount?: number;
-  effective_amount?: number;
   created_at: string;
-  created_by?: string;
+  updated_at: string;
+}
+
+export interface Discount {
+  id: string;
+  repair: string;
+  amount: number;
+  reason: string;
+  created_at: string;
+  created_by?: User;
+  created_by_name?: string;
 }
 
 export interface Brand {
@@ -43,7 +52,8 @@ export interface Issue {
   requiresPart?: boolean;
   basePrice: number;
   categoryType: "part_based" | "service_based";
-  associatedPart?: Part;
+  associatedPart?: number;
+  compatibleParts?: number[];
   servicePricing?: ServicePricing[];
 }
 
@@ -104,44 +114,64 @@ export interface User {
 
 export interface Client extends User {}
 
+export interface Series {
+  id: number;
+  name: string;
+  device_type: DeviceType;
+}
+export interface ProductModel {
+  id: number;
+  name: string;
+  brand: Brand;
+  series?: Series;
+}
+
 export interface Repair {
   id: number;
   uid: string;
   date: string;
+  scheduled_date?: string | null;
   client: User;
-  product_model: number | null; // ID of the product model
+  product_model?: ProductModel | null;
   description: string;
-  password?: string;
-  price: string;
-  remise: string;
-  card_payment: string;
-  cash_payment: string;
-  comment?: string;
-  device_photo?: string;
-  file?: string;
+  password?: string | null;
+  accessories?: string | null;
+  comment?: string | null;
+  device_photo?: string | null;
+  file?: string | null;
   created_at: string;
   updated_at: string;
   is_in_store: boolean;
-  is_successful: boolean;
-  payment: Payment[];
+  is_successful: boolean | null;
+  status: RepairStatus;
 
-  // Fields expected by frontend but missing in backend model (marked optional)
-  status?: RepairStatus;
+  // Financial fields from new backend
+  base_price: number;
+  total_discounts: number;
+  final_price: number;
+  total_paid: number;
+  remaining_balance: number;
+  payment_status: PaymentStatus;
+
+  // Related data
+  repair_issues: RepairIssue[];
+  payments: Payment[];
+  discounts?: any[]; // Discount model if needed
+
+  // Computed display fields from serializer
+  brand?: string;
+  model?: string;
+  deviceType?: string;
+
+  // Frontend-specific fields (marked optional)
   statusHistory?: StatusChange[];
-  payments?: Payment[];
   completedAt?: Date;
   recoveredAt?: Date;
   depositStatus?: DepositStatus;
   outcome?: RepairOutcome;
   scheduledDate?: Date;
-  paymentStatus?: PaymentStatus;
-  accessories?: string[] | string; // Can be array or comma-separated string from API
   issueDescription?: string;
-  deviceType?: DeviceType;
-  brand?: string;
-  model?: string;
   issues?: string[];
-  repair_issues?: RepairIssue[];
   repair_issue_data?: {
     issue_id: number;
     quality_tier_id?: number;
@@ -153,6 +183,13 @@ export interface Repair {
   remainingBalance?: number;
   estimatedCompletion?: Date;
   notes?: string;
+
+  // Legacy fields for backward compatibility (deprecated)
+  price?: string;
+  remise?: string;
+  card_payment?: string;
+  cash_payment?: string;
+  payment?: Payment[];
 }
 
 export interface Part {

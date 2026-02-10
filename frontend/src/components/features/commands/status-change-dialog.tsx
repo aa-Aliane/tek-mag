@@ -105,11 +105,13 @@ export function StatusChangeDialog({
         <div className="space-y-6 py-4">
           {/* Current Status Visualization */}
           <div className="flex items-center gap-3">
-            <Badge
-              className={`${statusConfig[repair.status].color} text-white`}
-            >
-              {statusConfig[repair.status].label}
-            </Badge>
+            {repair.status && statusConfig[repair.status] && (
+              <Badge
+                className={`${statusConfig[repair.status].color} text-white`}
+              >
+                {statusConfig[repair.status].label}
+              </Badge>
+            )}
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
               Nouveau statut

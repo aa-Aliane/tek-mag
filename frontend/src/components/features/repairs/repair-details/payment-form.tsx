@@ -6,7 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { X, Euro, CreditCard, Banknote } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  X,
+  Euro,
+  CreditCard,
+  Banknote,
+  FileText,
+  Building,
+} from "lucide-react";
 import type { PaymentMethod } from "@/types";
 import type { PaymentFormProps } from "./types";
 
@@ -14,48 +22,89 @@ export function PaymentForm({
   repair,
   onClose,
   onAddPayment,
-  totalCostValue,
+
   totalPaid,
   remaining,
 }: PaymentFormProps) {
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [paymentNote, setPaymentNote] = useState("");
+  const [isRounding, setIsRounding] = useState(false);
 
   // Reset form when repair changes
   useEffect(() => {
     setPaymentAmount("");
     setPaymentNote("");
     setPaymentMethod("cash");
+    setIsRounding(false);
   }, [repair]);
 
+  // Calculate final amount after rounding
+  const calculateFinalAmount = () => {
+    const amount = parseFloat(paymentAmount || "0");
+    let finalAmount = amount;
+
+    // Apply rounding if enabled and method is cash
+    if (isRounding && paymentMethod === "cash") {
+      // Round to nearest 0.50
+      finalAmount = Math.round(finalAmount * 2) / 2;
+    } else {
+      // Round to 2 decimal places for other methods
+      finalAmount = Math.round(finalAmount * 100) / 100;
+    }
+
+    return finalAmount;
+  };
+
   const handleSubmit = () => {
-    const parsedAmount = parseFloat(paymentAmount || "0");
+    const finalAmount = calculateFinalAmount();
 
     if (
-      !isNaN(parsedAmount) &&
-      parsedAmount > 0 &&
+      !isNaN(finalAmount) &&
+      finalAmount > 0 &&
       onAddPayment &&
-      parsedAmount <= remaining + 0.01
+      finalAmount <= remaining + 0.01
     ) {
+      // Build note with rounding information
+      let enhancedNote = paymentNote || "";
+
+      if (isRounding && paymentMethod === "cash") {
+        const roundingText = `Arrondi espèces: ${Number(finalAmount).toFixed(2)}€`;
+        enhancedNote = enhancedNote
+          ? `${enhancedNote} | ${roundingText}`
+          : roundingText;
+      }
+
       onAddPayment(
         repair,
-        parsedAmount,
+        finalAmount,
         paymentMethod,
-        paymentNote || undefined,
+        enhancedNote || undefined,
       );
       setPaymentAmount("");
       setPaymentNote("");
+      setIsRounding(false);
       onClose();
     }
   };
 
+  const finalAmount = calculateFinalAmount();
+
   const isSubmitDisabled = !(
     paymentAmount &&
     !isNaN(parseFloat(paymentAmount)) &&
-    parseFloat(paymentAmount) > 0 &&
-    parseFloat(paymentAmount) <= remaining + 0.01
+    finalAmount > 0 &&
+    finalAmount <= remaining + 0.01
   );
+  let x =
+    !isNaN(parseFloat(paymentAmount)) &&
+    finalAmount > 0 &&
+    finalAmount <= remaining + 0.01;
+  console.log("hohoho ohoh", x);
+
+  console.log("hiihihhih paymantAmount:", paymentAmount);
+  console.log("hiihihhih finalAmount:", finalAmount);
+  console.log("hiihihhih finale price:", repair.final_price);
 
   return (
     <div className="absolute inset-0 bg-white z-10 flex flex-col">
@@ -66,7 +115,7 @@ export function PaymentForm({
             <div className="flex items-center gap-3 mb-2">
               <h2 className="text-2xl font-bold">Ajouter un paiement</h2>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Réparation #{repair.id} - {repair.brand} {repair.model}
             </p>
           </div>
@@ -84,41 +133,68 @@ export function PaymentForm({
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6">
         {/* Payment Summary */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100 mb-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-l p-5 border border-blue-100 mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="font-semibold text-gray-700">Coût total</span>
             <span className="text-2xl font-bold text-blue-600">
-              {totalCostValue.toFixed(2)} €
+              {Number(repair.final_price || repair.base_price || 0).toFixed(2)}{" "}
+              €
             </span>
           </div>
 
+          {/* Show discounts if any */}
+          {repair.total_discounts > 0 && (
+            <div className="flex justify-between text-sm text-orange-600 mb-2">
+              <span>Remises appliquées</span>
+              <span>-{Number(repair.total_discounts || 0).toFixed(2)} €</span>
+            </div>
+          )}
+
           <div className="mt-4">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
-              <span>Payé: {totalPaid.toFixed(2)} €</span>
-              <span>Reste: {remaining.toFixed(2)} €</span>
+              <span>Payé: {Number(totalPaid).toFixed(2)} €</span>
+              <span>Reste: {Number(remaining).toFixed(2)} €</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
                 className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
                 style={{
-                  width: `${Math.min(100, (totalPaid / totalCostValue) * 100)}%`,
+                  width: `${Math.min(100, (totalPaid / Number(repair.final_price || repair.base_price || 1)) * 100)}%`,
                 }}
               ></div>
             </div>
           </div>
         </div>
 
-        {/* Payment Form */}
-        <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+        {/* Rounding Adjustment Section */}
+        <div className="bg-amber-50/50 rounded-l p-5 border border-amber-100 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Euro className="h-5 w-5 text-blue-600" />
-            Détails du paiement
+            Ajustements
+          </h3>
+
+          <div className="flex items-center space-x-3">
+            <Switch
+              id="rounding"
+              checked={isRounding}
+              onCheckedChange={setIsRounding}
+              disabled={paymentMethod !== "cash"}
+            />
+            <Label htmlFor="rounding" className="text-sm">
+              Appliquer un arrondi automatique (Mode: Espèces)
+            </Label>
+          </div>
+        </div>
+
+        {/* Payment Details Card */}
+        <div className="bg-white rounded-l p-5 border border-gray-200 shadow-sm">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            Détails du règlement
           </h3>
 
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="paymentAmount" className="text-gray-700">
-                Montant à payer (max: {remaining.toFixed(2)} €)
+                Montant à encaisser
               </Label>
               <div className="relative">
                 <Input
@@ -147,7 +223,7 @@ export function PaymentForm({
                 onValueChange={(value: PaymentMethod) =>
                   setPaymentMethod(value)
                 }
-                className="grid grid-cols-2 gap-4"
+                className="grid grid-cols-2 gap-3"
               >
                 <div>
                   <RadioGroupItem
@@ -157,10 +233,10 @@ export function PaymentForm({
                   />
                   <Label
                     htmlFor="cash"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                   >
-                    <Banknote className="mb-3 h-6 w-6" />
-                    Espèces
+                    <Banknote className="mb-2 h-5 w-5" />
+                    <span className="text-sm">Espèces</span>
                   </Label>
                 </div>
                 <div>
@@ -171,10 +247,38 @@ export function PaymentForm({
                   />
                   <Label
                     htmlFor="card"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                   >
-                    <CreditCard className="mb-3 h-6 w-6" />
-                    Carte
+                    <CreditCard className="mb-2 h-5 w-5" />
+                    <span className="text-sm">Carte</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem
+                    value="check"
+                    id="check"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="check"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                  >
+                    <FileText className="mb-2 h-5 w-5" />
+                    <span className="text-sm">Chèque</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem
+                    value="transfer"
+                    id="transfer"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="transfer"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                  >
+                    <Building className="mb-2 h-5 w-5" />
+                    <span className="text-sm">Virement</span>
                   </Label>
                 </div>
               </RadioGroup>
@@ -186,7 +290,7 @@ export function PaymentForm({
                 id="paymentNote"
                 value={paymentNote}
                 onChange={(e) => setPaymentNote(e.target.value)}
-                placeholder="Ajouter une note au paiement..."
+                placeholder="Client fidèle, remise de 10% appliquée..."
                 rows={2}
                 className="resize-none"
               />
@@ -201,9 +305,7 @@ export function PaymentForm({
                 onClick={handleSubmit}
                 disabled={isSubmitDisabled}
               >
-                Enregistrer{" "}
-                {paymentAmount ? parseFloat(paymentAmount).toFixed(2) : "0.00"}{" "}
-                €
+                Confirmer le Paiement ({repair.remaining_balance} €)
               </Button>
             </div>
           </div>
