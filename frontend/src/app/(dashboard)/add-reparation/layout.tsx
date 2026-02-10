@@ -46,11 +46,13 @@ const getDeviceIcon = (slug: string) => {
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
+  params?: any;
 }
 
 const AddReparationLayout: React.FC<Props> = ({
   children,
   className,
+  params,
   ...rest
 }) => {
   const {

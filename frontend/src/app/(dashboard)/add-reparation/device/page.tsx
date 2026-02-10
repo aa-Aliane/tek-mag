@@ -12,9 +12,17 @@ import { DeviceTypeGrid } from "@/features/repairs/_add-reparation/_components/d
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
+  params?: any;
+  searchParams?: any;
+}
 
-const AddReparationDevicePage: React.FC<Props> = ({ className, ...rest }) => {
+const AddReparationDevicePage: React.FC<Props> = ({
+  className,
+  params,
+  searchParams,
+  ...rest
+}) => {
   const {
     deviceType,
     setDeviceType,

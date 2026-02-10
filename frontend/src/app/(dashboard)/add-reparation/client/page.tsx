@@ -30,9 +30,17 @@ import { useCommonIssues } from "@/hooks/use-common-issues";
 import type { Client } from "@/types";
 import { cn } from "@/lib/utils";
 
-interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
+  params?: any;
+  searchParams?: any;
+}
 
-const AddReparationClientPage: React.FC<Props> = ({ className, ...rest }) => {
+const AddReparationClientPage: React.FC<Props> = ({
+  className,
+  params,
+  searchParams,
+  ...rest
+}) => {
   const router = useRouter();
   const { formData, setFormData } = useAddReparationStore();
   const {

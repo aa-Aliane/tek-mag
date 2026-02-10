@@ -30,9 +30,17 @@ import { Issue } from "@/types";
 import { useSubtotal } from "@/features/repairs/_add-reparation/_hooks/use-issue-pricing";
 import { QualityTierSelector } from "@/features/repairs/_add-reparation/_components/issues/quality-tier-selector";
 
-interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
+  params?: any;
+  searchParams?: any;
+}
 
-const AddReparationIssuesPage: React.FC<Props> = ({ className, ...rest }) => {
+const AddReparationIssuesPage: React.FC<Props> = ({
+  className,
+  params,
+  searchParams,
+  ...rest
+}) => {
   const router = useRouter();
   const { setFormData: setGlobalFormData } = useAddReparationStore();
   const {

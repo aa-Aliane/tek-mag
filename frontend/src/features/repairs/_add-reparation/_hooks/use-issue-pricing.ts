@@ -1,4 +1,4 @@
-import { useMultipleIssuePricingOptions } from "@/hooks/use-common-issues";
+import { useMultipleIssuePricingOptions } from "../_queries/use-issue-pricing-queries";
 import { PartQualityTier } from "@/types";
 
 // Custom hook to calculate subtotal

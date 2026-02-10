@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import { Loader2, Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { usePartQualityTiers } from "@/hooks/use-common-issues";
+import { usePartQualityTiers } from "../../_queries/use-issue-pricing-queries";
 import { PartQualityTier } from "@/types";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {

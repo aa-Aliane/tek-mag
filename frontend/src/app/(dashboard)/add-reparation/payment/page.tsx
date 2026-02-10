@@ -16,9 +16,17 @@ import {
 } from "@/features/repairs/_add-reparation/_components/payment";
 import { cn } from "@/lib/utils";
 
-interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
+  params?: any;
+  searchParams?: any;
+}
 
-const AddReparationPaymentPage: React.FC<Props> = ({ className, ...rest }) => {
+const AddReparationPaymentPage: React.FC<Props> = ({
+  className,
+  params,
+  searchParams,
+  ...rest
+}) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { formData, submitForm } = useAddReparationStore();

@@ -57,6 +57,7 @@ src/features/repairs/_add-reparation/
 │   ├── use-add-reparation-form.ts  # Master hook for form state
 │   ├── use-device-selection.ts
 │   └── use-issue-pricing.ts
+├── _queries/                    # TanStack Query hooks (feature-specific)
 ├── _types/                      # Feature-specific TS definitions
 │   └── index.ts
 ├── _utils/                      # Helpers (icons, formatting)
