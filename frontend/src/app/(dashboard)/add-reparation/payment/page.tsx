@@ -11,10 +11,11 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PaymentLayout from "@/features/repairs/_add-reparation/_layouts/payment-layout";
 import {
-  Discount,
-  Payment,
+  DiscountSection,
+  PaymentMethods,
 } from "@/features/repairs/_add-reparation/_components/payment";
 import { cn } from "@/lib/utils";
+import { StepLayout } from "@/features/repairs/_add-reparation/_layouts/step-layout";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {
   params?: any;
@@ -80,57 +81,36 @@ const AddReparationPaymentPage: React.FC<Props> = ({
   }
 
   return (
-    <Card className={cn("p-8", className)} {...rest}>
+    <StepLayout
+      title="Paiement et Validation"
+      description="Vérifiez les informations une dernière fois avant de valider."
+      onBack={() => router.push("/add-reparation/client")}
+      onNext={handleFinish}
+      nextLabel="Valider la réparation"
+      isNextLoading={isSubmitting}
+      showNextIcon={false}
+      className={className}
+      {...rest}
+    >
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">Paiement et Validation</h2>
-          <p className="text-sm text-muted-foreground">
-            Vérifiez les informations une dernière fois avant de valider.
-          </p>
-        </div>
-        <Tabs defaultValue="account" className="w-[400px]">
-          <TabsList>
-            <TabsTrigger value="Payments">Payments</TabsTrigger>
+        <Tabs defaultValue="Payments" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="Payments">Paiements</TabsTrigger>
             <TabsTrigger value="Remises">Remises</TabsTrigger>
           </TabsList>
-          <TabsContent value="Payments">
+          <TabsContent value="Payments" className="pt-4">
             <PaymentLayout>
-              <Payment />
+              <PaymentMethods />
             </PaymentLayout>
           </TabsContent>
-          <TabsContent value="Remises">
+          <TabsContent value="Remises" className="pt-4">
             <PaymentLayout>
-              <Discount />
+              <DiscountSection />
             </PaymentLayout>
           </TabsContent>
         </Tabs>
-        <div className="flex justify-between pt-8">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/add-reparation/client")}
-            disabled={isSubmitting}
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Retour
-          </Button>
-          <Button
-            onClick={handleFinish}
-            disabled={isSubmitting}
-            size="lg"
-            className="px-8"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Création en cours...
-              </>
-            ) : (
-              "Valider la réparation"
-            )}
-          </Button>
-        </div>
       </div>
-    </Card>
+    </StepLayout>
   );
 };
 

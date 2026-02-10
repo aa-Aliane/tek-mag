@@ -9,6 +9,7 @@ import { BrandSelection } from "@/components/features/brand-selection/BrandSelec
 import { ModelSelection } from "@/components/features/model-selection/ModelSelection";
 import { useAddReparationDevice } from "@/features/repairs/_add-reparation/_hooks/use-device-selection";
 import { DeviceTypeGrid } from "@/features/repairs/_add-reparation/_components/device/device-type-grid";
+import { StepLayout } from "@/features/repairs/_add-reparation/_layouts/step-layout";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -90,15 +91,16 @@ const AddReparationDevicePage: React.FC<Props> = ({
   }
 
   return (
-    <Card className={cn("p-8", className)} {...rest}>
+    <StepLayout
+      title="Type d'appareil"
+      description="Sélectionnez le type d'appareil à réparer"
+      onNext={() => router.push("/add-reparation/issues")}
+      isNextDisabled={!canProceedStep1}
+      isNextLoading={isBrandLoadingForDevice || isModelLoadingForBrand}
+      className={className}
+      {...rest}
+    >
       <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-semibold mb-2">Type d'appareil</h2>
-          <p className="text-sm text-muted-foreground mb-4">
-            Sélectionnez le type d'appareil à réparer
-          </p>
-        </div>
-
         <DeviceTypeGrid
           deviceTypes={deviceTypes}
           deviceType={deviceType}
@@ -153,30 +155,8 @@ const AddReparationDevicePage: React.FC<Props> = ({
             )}
           </div>
         )}
-
-        <div className="flex justify-end pt-4">
-          <Button
-            onClick={() => router.push("/add-reparation/issues")}
-            disabled={
-              !canProceedStep1 ||
-              isBrandLoadingForDevice ||
-              isModelLoadingForBrand ||
-              false
-            }
-            size="lg"
-          >
-            {isBrandLoadingForDevice || isModelLoadingForBrand ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Chargement...
-              </>
-            ) : (
-              "Suivant"
-            )}
-          </Button>
-        </div>
       </div>
-    </Card>
+    </StepLayout>
   );
 };
 

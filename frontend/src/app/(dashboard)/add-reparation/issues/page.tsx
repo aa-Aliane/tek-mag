@@ -29,6 +29,7 @@ import { useCommonIssues } from "@/hooks/use-common-issues";
 import { Issue } from "@/types";
 import { useSubtotal } from "@/features/repairs/_add-reparation/_hooks/use-issue-pricing";
 import { QualityTierSelector } from "@/features/repairs/_add-reparation/_components/issues/quality-tier-selector";
+import { StepLayout } from "@/features/repairs/_add-reparation/_layouts/step-layout";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {
   params?: any;
@@ -146,16 +147,16 @@ const AddReparationIssuesPage: React.FC<Props> = ({
   }
 
   return (
-    <Card className={cn("p-8", className)} {...rest}>
-      {/* Step 2: Issues */}
+    <StepLayout
+      title="Problèmes rencontrés"
+      description="Sélectionnez tous les problèmes qui s'appliquent"
+      onBack={() => router.push("/add-reparation/device")}
+      onNext={() => router.push("/add-reparation/client")}
+      isNextDisabled={!canProceedStep2}
+      className={className}
+      {...rest}
+    >
       <div className="space-y-8">
-        <div>
-          <h2 className="text-2xl font-bold mb-2">Problèmes rencontrés</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Sélectionnez tous les problèmes qui s'appliquent
-          </p>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {isLoadingCommonIssues ? (
             <div className="col-span-full flex items-center justify-center py-8">
@@ -488,34 +489,8 @@ const AddReparationIssuesPage: React.FC<Props> = ({
             </div>
           </div>
         </div>
-
-        <div className="flex justify-between pt-8">
-          <Button
-            onClick={() => router.push("/add-reparation/device")}
-            variant="outline"
-            size="lg"
-          >
-            Retour
-          </Button>
-          <div className="flex flex-col items-end">
-            {!canProceedStep2 && selectedIssues.length > 0 && (
-              <p className="text-sm text-red-500 mb-2 flex items-center">
-                <X className="h-4 w-4 mr-1" />
-                Veuillez sélectionner une qualité pour tous les pièces
-                sélectionnées
-              </p>
-            )}
-            <Button
-              onClick={() => router.push("/add-reparation/client")}
-              disabled={!canProceedStep2}
-              size="lg"
-            >
-              Suivant
-            </Button>
-          </div>
-        </div>
       </div>
-    </Card>
+    </StepLayout>
   );
 };
 

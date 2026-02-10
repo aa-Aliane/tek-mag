@@ -1,4 +1,4 @@
-import Payment from "./payment";
-import Discount from "./discount";
+import { PaymentMethods } from "./payment-methods";
+import { DiscountSection } from "./discount-section";
 
-export { Payment, Discount };
+export { PaymentMethods, DiscountSection };

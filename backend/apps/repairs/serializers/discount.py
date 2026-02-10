@@ -11,7 +11,7 @@ class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         fields = "__all__"
-        read_only_fields = ["created_at", "created_by"]
+        read_only_fields = ["created_at", "created_by", "repair"]
 
     def create(self, validated_data):
 

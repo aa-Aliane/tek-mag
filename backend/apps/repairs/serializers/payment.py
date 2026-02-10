@@ -14,4 +14,4 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = "__all__"
-        read_only_fields = ["created_at", "created_by"]
+        read_only_fields = ["created_at", "created_by", "repair"]
