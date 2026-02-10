@@ -20,6 +20,7 @@ interface Props extends React.ComponentPropsWithoutRef<"div"> {
 export const QualityTierSelector: React.FC<Props> = ({
   issueId,
   modelId,
+  associatedPartId,
   onTierSelect,
   selectedTierId,
   setLoadingTiersFor,

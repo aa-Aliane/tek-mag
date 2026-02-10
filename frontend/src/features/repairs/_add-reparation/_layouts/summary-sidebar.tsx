@@ -99,15 +99,34 @@ export const SummarySidebar: React.FC<Props> = ({ className, isScrolled, ...rest
                   <div className="h-1 w-1 rounded-full bg-primary" />
                   PROBLÈMES ({selectedIssues.length})
                 </div>
-                <div className="pl-3 space-y-2">
+                <div className="pl-3 space-y-3">
                   {selectedIssues.map((selectedIssue) => (
                     <div key={selectedIssue.issueId} className="text-sm">
-                      <div className="font-medium">• {selectedIssue.issueName}</div>
-                      {selectedIssue.categoryType === "part_based" && selectedIssue.selectedTierId && (
-                        <div className="text-xs text-muted-foreground ml-2">
-                          Qualité: {selectedIssue.selectedTierId}
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="font-medium flex-1">
+                          • {selectedIssue.issueName}
                         </div>
-                      )}
+                      </div>
+                      <div className="ml-3 mt-1 space-y-1">
+                        {selectedIssue.categoryType === "part_based" &&
+                          selectedIssue.selectedTierId && (
+                            <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded inline-block">
+                              Qualité:{" "}
+                              {selectedIssue.selectedTierId === 1
+                                ? "Standard"
+                                : selectedIssue.selectedTierId === 2
+                                  ? "Premium"
+                                  : selectedIssue.selectedTierId === 3
+                                    ? "Original"
+                                    : "Reconditionné"}
+                            </div>
+                          )}
+                        {selectedIssue.notes && (
+                          <div className="text-xs text-muted-foreground italic line-clamp-1">
+                            "{selectedIssue.notes}"
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
