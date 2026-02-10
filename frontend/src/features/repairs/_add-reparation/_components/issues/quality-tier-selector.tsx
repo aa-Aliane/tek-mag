@@ -23,6 +23,7 @@ export const QualityTierSelector: React.FC<Props> = ({
   associatedPartId,
   onTierSelect,
   selectedTierId,
+  loadingTiersFor,
   setLoadingTiersFor,
   className,
   ...rest

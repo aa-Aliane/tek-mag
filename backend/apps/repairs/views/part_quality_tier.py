@@ -1,5 +1,6 @@
 from apps.repairs.models import PartQualityTier
 from apps.repairs.serializers.part_quality_tier import PartQualityTierSerializer
+from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -23,8 +24,8 @@ class PartQualityTierViewSet(viewsets.ModelViewSet):
         if model_id and issue_id:
             queryset = (
                 queryset.filter(
-                    # 1. Look through Part to the Issue's ManyToMany (related_issues)
-                    part__related_issues__id=issue_id,
+                    # 1. Look for parts linked to the issue (via associated_part OR compatible_parts)
+                    Q(part__issues__id=issue_id) | Q(part__related_issues__id=issue_id),
                     # 2. Look through Part to the ProductModel's ManyToMany (compatible_models)
                     part__compatible_models__id=model_id,
                     # 3. Only show available stock for the wizard
