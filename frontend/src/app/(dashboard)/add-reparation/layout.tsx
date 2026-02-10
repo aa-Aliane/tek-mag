@@ -1,7 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useState, useEffect, createElement } from "react";
+import React, { useState, useEffect, createElement } from "react";
 import { usePathname } from "next/navigation";
 import { useReparationStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
@@ -45,11 +44,15 @@ const getDeviceIcon = (slug: string) => {
   }
 };
 
-export default function AddReparationLayout({
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
+  children: React.ReactNode;
+}
+
+const AddReparationLayout: React.FC<Props> = ({
   children,
-}: {
-  children: ReactNode;
-}) {
+  className,
+  ...rest
+}) => {
   const {
     deviceType,
     brand,
@@ -124,7 +127,7 @@ export default function AddReparationLayout({
   const deviceTypes = deviceTypesData?.results || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn("min-h-screen bg-background", className)} {...rest}>
       <SharedHeader
         title="Nouvelle Réparation"
         showProgress={true}
@@ -303,4 +306,6 @@ export default function AddReparationLayout({
       </div>
     </div>
   );
-}
+};
+
+export default AddReparationLayout;

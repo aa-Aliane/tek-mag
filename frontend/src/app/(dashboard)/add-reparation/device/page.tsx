@@ -1,16 +1,20 @@
 "use client";
 
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { BrandSelection } from "@/components/features/brand-selection/BrandSelection";
 import { ModelSelection } from "@/components/features/model-selection/ModelSelection";
-import { useAddReparationDevice } from "./hooks";
-import { DeviceTypeGrid } from "./device-type-grid";
+import { useAddReparationDevice } from "@/features/repairs/_add-reparation/_hooks/use-device-selection";
+import { DeviceTypeGrid } from "@/features/repairs/_add-reparation/_components/device/device-type-grid";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-export default function AddReparationDevicePage() {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+
+const AddReparationDevicePage: React.FC<Props> = ({ className, ...rest }) => {
   const {
     deviceType,
     setDeviceType,
@@ -40,7 +44,13 @@ export default function AddReparationDevicePage() {
   // Handle loading states
   if (isLoadingDeviceTypes) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div
+        className={cn(
+          "flex items-center justify-center min-h-[400px]",
+          className,
+        )}
+        {...rest}
+      >
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin" />
           <p className="text-lg">Chargement des types d'appareils...</p>
@@ -52,7 +62,13 @@ export default function AddReparationDevicePage() {
   // Show errors if any
   if (deviceTypesError || brandsError || modelsError) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div
+        className={cn(
+          "flex items-center justify-center min-h-[400px]",
+          className,
+        )}
+        {...rest}
+      >
         <div className="text-center p-4">
           <p className="text-lg text-red-600">
             Erreur de chargement des données
@@ -66,7 +82,7 @@ export default function AddReparationDevicePage() {
   }
 
   return (
-    <Card className="p-8">
+    <Card className={cn("p-8", className)} {...rest}>
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-semibold mb-2">Type d'appareil</h2>
@@ -154,4 +170,6 @@ export default function AddReparationDevicePage() {
       </div>
     </Card>
   );
-}
+};
+
+export default AddReparationDevicePage;

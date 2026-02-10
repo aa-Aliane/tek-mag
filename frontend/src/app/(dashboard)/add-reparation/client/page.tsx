@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,11 @@ import { useClients } from "@/hooks/use-clients";
 import { useDeviceTypes } from "@/hooks/use-device-types";
 import { useCommonIssues } from "@/hooks/use-common-issues";
 import type { Client } from "@/types";
+import { cn } from "@/lib/utils";
 
-export default function AddReparationClientPage() {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+
+const AddReparationClientPage: React.FC<Props> = ({ className, ...rest }) => {
   const router = useRouter();
   const { formData, setFormData } = useAddReparationStore();
   const {
@@ -156,7 +159,7 @@ export default function AddReparationClientPage() {
   };
 
   return (
-    <Card className="p-8">
+    <Card className={cn("p-8", className)} {...rest}>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-xl font-semibold text-card-foreground">
@@ -361,4 +364,6 @@ export default function AddReparationClientPage() {
       </div>
     </Card>
   );
-}
+};
+
+export default AddReparationClientPage;

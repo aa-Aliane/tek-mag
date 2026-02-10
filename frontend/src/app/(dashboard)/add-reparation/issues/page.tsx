@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useReparationStore } from "@/lib/store";
 import { useAddReparationStore } from "@/store/addReparationStore";
@@ -27,10 +27,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useCommonIssues } from "@/hooks/use-common-issues";
 import { Issue } from "@/types";
-import { useSubtotal } from "./hooks";
-import { QualityTierSelector } from "./quality-tier-selector";
+import { useSubtotal } from "@/features/repairs/_add-reparation/_hooks/use-issue-pricing";
+import { QualityTierSelector } from "@/features/repairs/_add-reparation/_components/issues/quality-tier-selector";
 
-export default function AddReparationIssuesPage() {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+
+const AddReparationIssuesPage: React.FC<Props> = ({ className, ...rest }) => {
   const router = useRouter();
   const { setFormData: setGlobalFormData } = useAddReparationStore();
   const {
@@ -116,7 +118,13 @@ export default function AddReparationIssuesPage() {
   // Show errors if any
   if (commonIssuesError) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div
+        className={cn(
+          "flex items-center justify-center min-h-[400px]",
+          className,
+        )}
+        {...rest}
+      >
         <div className="text-center p-4">
           <p className="text-lg text-red-600">
             Erreur de chargement des données
@@ -130,7 +138,7 @@ export default function AddReparationIssuesPage() {
   }
 
   return (
-    <Card className="p-8">
+    <Card className={cn("p-8", className)} {...rest}>
       {/* Step 2: Issues */}
       <div className="space-y-8">
         <div>
@@ -501,4 +509,6 @@ export default function AddReparationIssuesPage() {
       </div>
     </Card>
   );
-}
+};
+
+export default AddReparationIssuesPage;

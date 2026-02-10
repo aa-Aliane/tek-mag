@@ -1,19 +1,28 @@
+import React from "react";
 import { cn } from "@/lib/utils";
-import { getDeviceIcon } from "./device-utils";
+import { getDeviceIcon } from "../../_utils/device-helpers";
 
-interface DeviceTypeGridProps {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
   deviceTypes: any[];
   deviceType: string | null;
   onDeviceTypeSelect: (slug: string) => void;
 }
 
-export function DeviceTypeGrid({
+export const DeviceTypeGrid: React.FC<Props> = ({
   deviceTypes,
   deviceType,
   onDeviceTypeSelect,
-}: DeviceTypeGridProps) {
+  className,
+  ...rest
+}) => {
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+    <div
+      className={cn(
+        "grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2",
+        className,
+      )}
+      {...rest}
+    >
       {deviceTypes.map((type) => (
         <button
           key={type.id}
@@ -26,11 +35,9 @@ export function DeviceTypeGrid({
           )}
         >
           {getDeviceIcon(type.slug)}
-          <span className="text-xs font-medium text-center">
-            {type.name}
-          </span>
+          <span className="text-xs font-medium text-center">{type.name}</span>
         </button>
       ))}
     </div>
   );
-}
+};

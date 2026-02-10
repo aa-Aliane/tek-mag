@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Loader2, Check } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { usePartQualityTiers } from "@/hooks/use-common-issues";
 import { PartQualityTier } from "@/types";
 
-interface QualityTierSelectorProps {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {
   issueId: string | number;
   modelId: string | number;
   associatedPartId?: string | number;
@@ -17,13 +17,15 @@ interface QualityTierSelectorProps {
   setLoadingTiersFor: (id: string | null) => void;
 }
 
-export function QualityTierSelector({
+export const QualityTierSelector: React.FC<Props> = ({
   issueId,
   modelId,
   onTierSelect,
   selectedTierId,
   setLoadingTiersFor,
-}: QualityTierSelectorProps) {
+  className,
+  ...rest
+}) => {
   const {
     data: pricingOptions,
     isLoading,
@@ -40,7 +42,7 @@ export function QualityTierSelector({
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 mt-2">
+      <div className={cn("flex items-center gap-2 mt-2", className)} {...rest}>
         <Loader2 className="h-4 w-4 animate-spin" />
         <span>Chargement des options de qualité...</span>
       </div>
@@ -49,7 +51,7 @@ export function QualityTierSelector({
 
   if (error) {
     return (
-      <div className="text-red-500 text-sm mt-2">
+      <div className={cn("text-red-500 text-sm mt-2", className)} {...rest}>
         Erreur de chargement des options de qualité
       </div>
     );
@@ -60,14 +62,14 @@ export function QualityTierSelector({
 
   if (!qualityTiers || qualityTiers.length === 0) {
     return (
-      <div className="text-yellow-600 text-sm mt-2">
+      <div className={cn("text-yellow-600 text-sm mt-2", className)} {...rest}>
         Aucune option de qualité disponible pour ce problème
       </div>
     );
   }
 
   return (
-    <div className="mt-3 space-y-3">
+    <div className={cn("mt-3 space-y-3", className)} {...rest}>
       <Label className="text-base font-semibold">Option de qualité</Label>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {qualityTiers.map((tier) => (
@@ -127,4 +129,4 @@ export function QualityTierSelector({
       </div>
     </div>
   );
-}
+};

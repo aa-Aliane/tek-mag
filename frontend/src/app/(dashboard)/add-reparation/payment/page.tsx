@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,16 @@ import { useAddReparationStore } from "@/store/addReparationStore";
 import { useReparationStore } from "@/lib/store";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PaymentLayout from "../_layouts/payment-layout";
-import { Discount, Payment } from "./_components";
+import PaymentLayout from "@/features/repairs/_add-reparation/_layouts/payment-layout";
+import {
+  Discount,
+  Payment,
+} from "@/features/repairs/_add-reparation/_components/payment";
+import { cn } from "@/lib/utils";
 
-export default function AddReparationPaymentPage() {
+interface Props extends React.ComponentPropsWithoutRef<"div"> {}
+
+const AddReparationPaymentPage: React.FC<Props> = ({ className, ...rest }) => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { formData, submitForm } = useAddReparationStore();
@@ -45,7 +51,13 @@ export default function AddReparationPaymentPage() {
 
   if (isSuccess) {
     return (
-      <Card className="p-8 flex flex-col items-center justify-center min-h-[400px] text-center">
+      <Card
+        className={cn(
+          "p-8 flex flex-col items-center justify-center min-h-[400px] text-center",
+          className,
+        )}
+        {...rest}
+      >
         <div className="rounded-full bg-green-100 p-3 mb-4">
           <CheckCircle2 className="h-12 w-12 text-green-600" />
         </div>
@@ -60,7 +72,7 @@ export default function AddReparationPaymentPage() {
   }
 
   return (
-    <Card className="p-8">
+    <Card className={cn("p-8", className)} {...rest}>
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold mb-2">Paiement et Validation</h2>
@@ -112,4 +124,6 @@ export default function AddReparationPaymentPage() {
       </div>
     </Card>
   );
-}
+};
+
+export default AddReparationPaymentPage;
