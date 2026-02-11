@@ -15,6 +15,7 @@ interface Props extends React.ComponentPropsWithoutRef<"div"> {
   isNextLoading?: boolean;
   showNextIcon?: boolean;
   nextIcon?: React.ReactNode;
+  customFooter?: React.ReactNode;
 }
 
 export const StepLayout: React.FC<Props> = ({
@@ -29,6 +30,7 @@ export const StepLayout: React.FC<Props> = ({
   isNextLoading = false,
   showNextIcon = true,
   nextIcon,
+  customFooter,
   className,
   ...rest
 }) => {
@@ -50,42 +52,48 @@ export const StepLayout: React.FC<Props> = ({
 
         <div className="min-h-[300px]">{children}</div>
 
-        <div className="flex justify-between pt-8 border-t mt-4">
-          {onBack ? (
-            <Button
-              variant="outline"
-              onClick={onBack}
-              size="lg"
-              type="button"
-              className="px-6"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              {backLabel}
-            </Button>
+        <div className="pt-8 border-t mt-4">
+          {customFooter ? (
+            customFooter
           ) : (
-            <div />
-          )}
-
-          {onNext && (
-            <Button
-              onClick={onNext}
-              disabled={isNextDisabled || isNextLoading}
-              size="lg"
-              type="button"
-              className="px-8 min-w-[140px]"
-            >
-              {isNextLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Chargement...
-                </>
+            <div className="flex justify-between">
+              {onBack ? (
+                <Button
+                  variant="outline"
+                  onClick={onBack}
+                  size="lg"
+                  type="button"
+                  className="px-6"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-2" />
+                  {backLabel}
+                </Button>
               ) : (
-                <>
-                  {nextLabel}
-                  {showNextIcon && (nextIcon || <ChevronRight className="h-4 w-4 ml-2" />)}
-                </>
+                <div />
               )}
-            </Button>
+
+              {onNext && (
+                <Button
+                  onClick={onNext}
+                  disabled={isNextDisabled || isNextLoading}
+                  size="lg"
+                  type="button"
+                  className="px-8 min-w-[140px]"
+                >
+                  {isNextLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Chargement...
+                    </>
+                  ) : (
+                    <>
+                      {nextLabel}
+                      {showNextIcon && (nextIcon || <ChevronRight className="h-4 w-4 ml-2" />)}
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </div>
