@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/layouts";
 import { RepairActionsBar } from "./repair-actions-bar";
 import { RepairListContainer } from "./repair-list-container";
-import { RepairDetailsDrawer } from "./repair-details-drawer";
+import { RepairDetailsDrawer } from "./_details";
 import { RepairHighlightStats } from "./stats/repair-highlight-stats";
 import { useRepairList } from "../_hooks/use-repair-list";
 import { useRepairActions } from "../_hooks/use-repair-actions";
@@ -88,16 +88,7 @@ export const RepairsView: React.FC<Props> = ({ className, ...rest }) => {
 
         <RepairDetailsDrawer
           repair={selectedRepair}
-          isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
-          onStatusChange={handleStatusChange}
-          onSchedule={handleSchedule}
-          onAddPayment={handleAddPayment}
-          onAddDiscount={handleAddDiscount}
-          onRestitute={handleRestitution}
-          onDeletePayment={handleDeletePayment}
-          onMarkRecovered={handleMarkRecovered}
-          currentUserName={currentUser.username}
         />
       </div>
     </DashboardLayout>
