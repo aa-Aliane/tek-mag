@@ -15,11 +15,11 @@ export interface Payment {
   amount: number;
   method: PaymentMethod;
   note?: string;
-  remise_type?: "percentage" | "fixed" | "none";
-  remise_value?: number;
-  is_rounding?: boolean;
-  created_at: string;
-  updated_at: string;
+  remiseType?: "percentage" | "fixed" | "none";
+  remiseValue?: number;
+  isRounding?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Discount {
@@ -27,9 +27,9 @@ export interface Discount {
   repair: string;
   amount: number;
   reason: string;
-  created_at: string;
-  created_by?: User;
-  created_by_name?: string;
+  createdAt: string;
+  createdBy?: User;
+  createdByName?: string;
 }
 
 export interface Brand {
@@ -59,47 +59,47 @@ export interface Issue {
 
 export interface PartQualityTier {
   id: number;
-  part_id: number;
-  quality_tier: "standard" | "premium" | "original" | "refurbished";
+  partId: number;
+  qualityTier: "standard" | "premium" | "original" | "refurbished";
   price: number;
-  warranty_days: number;
-  availability_status:
+  warrantyDays: number;
+  availabilityStatus:
     | "in_stock"
     | "low_stock"
     | "out_of_stock"
     | "discontinued";
-  description_fr?: string;
-  description_en?: string;
+  descriptionFr?: string;
+  descriptionEn?: string;
 }
 
 export interface ServicePricing {
   id: number;
-  pricing_type: "fixed" | "hourly" | "tiered";
-  base_price: number;
-  time_estimate_minutes?: number;
-  complexity_level: "low" | "medium" | "high" | "critical";
-  description_fr?: string;
-  description_en?: string;
+  pricingType: "fixed" | "hourly" | "tiered";
+  basePrice: number;
+  timeEstimateMinutes?: number;
+  complexityLevel: "low" | "medium" | "high" | "critical";
+  descriptionFr?: string;
+  descriptionEn?: string;
 }
 
 export interface RepairIssue {
   id: number;
   issue: Issue;
-  issue_id: number;
-  quality_tier?: PartQualityTier;
-  quality_tier_id?: number;
-  custom_price?: number;
+  issueId: number;
+  qualityTier?: PartQualityTier;
+  qualityTierId?: number;
+  customPrice?: number;
   notes?: string;
-  get_price: number;
+  getPrice: number;
 }
 
 export interface Profile {
   id: number;
   type: string;
-  phone_number: string;
+  phoneNumber: string;
   address: string;
-  date_of_birth: string | null;
-  profile_picture: string | null;
+  dateOfBirth: string | null;
+  profilePicture: string | null;
 }
 
 export interface User {
@@ -107,8 +107,8 @@ export interface User {
   pk: number;
   username: string;
   email: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   profile: Profile;
 }
 
@@ -117,7 +117,7 @@ export interface Client extends User {}
 export interface Series {
   id: number;
   name: string;
-  device_type: DeviceType;
+  deviceType: DeviceType;
 }
 export interface ProductModel {
   id: number;
@@ -130,31 +130,31 @@ export interface Repair {
   id: number;
   uid: string;
   date: string;
-  scheduled_date?: string | null;
+  // scheduledDate?: string | null;
   client: User;
-  product_model?: ProductModel | null;
+  productModel?: ProductModel | null;
   description: string;
   password?: string | null;
   accessories?: string | null;
   comment?: string | null;
-  device_photo?: string | null;
+  devicePhoto?: string | null;
   file?: string | null;
-  created_at: string;
-  updated_at: string;
-  is_in_store: boolean;
-  is_successful: boolean | null;
+  createdAt: string;
+  updatedAt: string;
+  isInStore: boolean;
+  isSuccessful: boolean | null;
   status: RepairStatus;
 
   // Financial fields from new backend
-  base_price: number;
-  total_discounts: number;
-  final_price: number;
-  total_paid: number;
-  remaining_balance: number;
-  payment_status: PaymentStatus;
+  basePrice: number;
+  totalDiscounts: number;
+  finalPrice: number;
+  totalPaid: number;
+  remainingBalance: number;
+  paymentStatus: PaymentStatus;
 
   // Related data
-  repair_issues: RepairIssue[];
+  repairIssues: RepairIssue[];
   payments: Payment[];
   discounts?: any[]; // Discount model if needed
 
@@ -172,23 +172,22 @@ export interface Repair {
   scheduledDate?: Date;
   issueDescription?: string;
   issues?: string[];
-  repair_issue_data?: {
-    issue_id: number;
-    quality_tier_id?: number;
-    custom_price?: number;
+  repairIssueData?: {
+    issueId: number;
+    qualityTierId?: number;
+    customPrice?: number;
     notes?: string;
   }[];
   totalCost?: number;
-  finalPrice?: number;
-  remainingBalance?: number;
+
   estimatedCompletion?: Date;
   notes?: string;
 
   // Legacy fields for backward compatibility (deprecated)
   price?: string;
   remise?: string;
-  card_payment?: string;
-  cash_payment?: string;
+  cardPayment?: string;
+  cashPayment?: string;
   payment?: Payment[];
 }
 
@@ -225,13 +224,13 @@ export interface StatusChange {
 export interface Supplier {
   id: number;
   name: string;
-  contact_person: string;
+  contactPerson: string;
   email: string;
   phone: string;
   address: string;
   website: string;
   notes: string;
-  is_active: boolean;
+  isActive: boolean;
 }
 
 export interface PaginatedResponse<T> {
@@ -255,27 +254,27 @@ export interface StockItem {
   id: number;
   part: Part;
   location: Location;
-  stock_type: StockType;
+  stockType: StockType;
   quantity: number;
 }
 
 export interface StoreOrder {
   id: number;
-  order_name: string;
+  orderName: string;
   description: string;
   url: string;
-  ordered_by: number;
-  created_at: string;
-  estimated_delivery_date: string;
-  actual_delivery_date?: string;
-  total_price: string;
-  down_payment: string;
+  orderedBy: number;
+  createdAt: string;
+  estimatedDeliveryDate: string;
+  actualDeliveryDate?: string;
+  totalPrice: string;
+  downPayment: string;
   status?: string; // Backend field (fallback)
-  delivery_status: string; // Primary field from serializer
-  order_status: string;
-  tracking_number: string;
+  deliveryStatus: string; // Primary field from serializer
+  orderStatus: string;
+  trackingNumber: string;
   reference: string;
   notes: string;
-  updated_at: string;
+  updatedAt: string;
   suppliers: number[];
 }

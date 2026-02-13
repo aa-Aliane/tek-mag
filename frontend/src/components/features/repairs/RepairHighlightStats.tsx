@@ -13,7 +13,7 @@ export const RepairHighlightStats: React.FC<RepairHighlightStatsProps> = ({ clas
 
   // Just the most important stats: total and current status counts
   // Calculate advanced metrics
-  const totalRevenue = repairs.reduce((sum, repair) => sum + parseFloat(repair.price || "0"), 0);
+  const totalRevenue = repairs.reduce((sum, repair) => sum + (Number(repair.totalCost) || 0), 0);
   const avgRepairValue = repairs.length > 0 ? (totalRevenue / repairs.length).toFixed(2) : "0.00";
   const avgRepairTime = 3.2; // Average days to complete repair
 

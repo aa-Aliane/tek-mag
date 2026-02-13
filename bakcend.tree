@@ -1,0 +1,117 @@
+backend/apps
+├── accounts
+│   ├── adapter.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── authentication.py
+│   ├── __init__.py
+│   ├── load.py
+│   ├── management
+│   │   └── commands
+│   │       ├── generate_test_data.py
+│   │       └── load_clients.py
+│   ├── migrations
+│   ├── models
+│   │   ├── email_verification_code.py
+│   │   ├── __init__.py
+│   │   ├── profile.py
+│   │   └── user.py
+│   ├── serializers
+│   │   ├── account_user_details.py
+│   │   ├── custom_registration.py
+│   │   ├── __init__.py
+│   │   ├── profile.py
+│   │   └── user.py
+│   ├── signals.py
+│   ├── urls.py
+│   └── views
+│       ├── __init__.py
+│       ├── mobile_login_view.py
+│       ├── profile.py
+│       └── user.py
+├── repairs
+│   ├── admin.py
+│   ├── apps.py
+│   ├── __init__.py
+│   ├── management
+│   │   ├── commands
+│   │   │   ├── __init__.py
+│   │   │   ├── load_reparations.py
+│   │   │   └── __pycache__
+│   │   │       └── load_reparations.cpython-312.pyc
+│   │   └── __init__.py
+│   ├── migrations
+│   ├── models
+│   │   ├── discount.py
+│   │   ├── __init__.py
+│   │   ├── issue.py
+│   │   ├── part_quality_tier.py
+│   │   ├── payment.py
+│   │   ├── repair.py
+│   │   └── service_pricing.py
+│   ├── serializers
+│   │   ├── discount.py
+│   │   ├── __init__.py
+│   │   ├── issue.py
+│   │   ├── part_quality_tier.py
+│   │   ├── payment.py
+│   │   ├── repair_issue.py
+│   │   ├── repair.py
+│   │   └── service_pricing.py
+│   ├── urls.py
+│   └── views
+│       ├── discount.py
+│       ├── __init__.py
+│       ├── issue.py
+│       ├── part_quality_tier.py
+│       ├── payment.py
+│       ├── repair_issue.py
+│       └── repair.py
+└── tech
+    ├── admin.py
+    ├── apps.py
+    ├── management
+    │   └── commands
+    │       ├── create_basic_users.py
+    │       ├── generate_remaining_tech_data.py
+    │       ├── import_smart_devices_csv.py
+    │       └── __pycache__
+    │           └── generate_remaining_tech_data.cpython-312.pyc
+    ├── migrations
+    ├── models
+    │   ├── brand.py
+    │   ├── device_type.py
+    │   ├── __init__.py
+    │   ├── location.py
+    │   ├── part.py
+    │   ├── product_model.py
+    │   ├── series.py
+    │   ├── stock_item.py
+    │   ├── store_order.py
+    │   └── supplier.py
+    ├── pagination.py
+    ├── serializers
+    │   ├── brand.py
+    │   ├── device_type.py
+    │   ├── __init__.py
+    │   ├── location.py
+    │   ├── part.py
+    │   ├── product_model.py
+    │   ├── series.py
+    │   ├── stock_item.py
+    │   ├── store_order.py
+    │   └── supplier.py
+    ├── urls.py
+    └── views
+        ├── brand.py
+        ├── device_type.py
+        ├── __init__.py
+        ├── location_viewset.py
+        ├── part.py
+        ├── product_model.py
+        ├── series.py
+        ├── stock_item_viewset.py
+        ├── store_order_viewset.py
+        └── supplier_viewset.py
+
+23 directories, 91 files

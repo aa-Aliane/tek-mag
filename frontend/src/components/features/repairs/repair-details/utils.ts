@@ -18,10 +18,10 @@ export const formatDate = (
 
 export const calculatePayments = (repair: Repair) => {
   // Use new backend financial structure
-  const basePrice = Number(repair.base_price || 0);
-  const totalPaid = Number(repair.total_paid || 0);
-  const remainingBalance = Number(repair.remaining_balance || 0);
-  const finalPrice = Number(repair.final_price || basePrice);
+  const basePrice = Number(repair.basePrice || 0);
+  const totalPaid = Number(repair.totalPaid || 0);
+  const remainingBalance = Number(repair.remainingBalance || 0);
+  const finalPrice = Number(repair.finalPrice || basePrice);
 
   // Calculate card and cash payments from payments array if available
   let cardPayment = 0;
@@ -38,19 +38,19 @@ export const calculatePayments = (repair: Repair) => {
     });
   } else {
     // Fallback to legacy fields for backward compatibility
-    cardPayment = Number(repair.card_payment || 0);
-    cashPayment = Number(repair.cash_payment || 0);
+    cardPayment = Number(repair.cardPayment || 0);
+    cashPayment = Number(repair.cashPayment || 0);
   }
 
-  // Use remaining_balance from backend, or calculate as fallback
+  // Use remainingBalance from backend, or calculate as fallback
   const remaining = remainingBalance || (finalPrice - totalPaid);
-  const isPaymentComplete = repair.payment_status === "paid" || remaining <= 0;
+  const isPaymentComplete = repair.paymentStatus === "paid" || remaining <= 0;
 
   return {
     cardPayment,
     cashPayment,
     totalPaid,
-    totalCostValue: finalPrice, // Use final_price as the actual cost
+    totalCostValue: finalPrice, // Use finalPrice as the actual cost
     remaining,
     isPaymentComplete,
   };

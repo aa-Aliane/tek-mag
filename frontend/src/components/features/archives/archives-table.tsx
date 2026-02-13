@@ -1,50 +1,86 @@
-"use client"
-
-import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import type { Repair, RepairStatus, DeviceType } from "@/types"
+import { formatSafeDate } from "@/utils/date"
 import { Search } from "lucide-react"
-import type { Repair } from "@/types"
-import { format } from "date-fns"
-import { fr } from "date-fns/locale"
+import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ArchivesTableProps {
-  repairs: Repair[]
+  repairs: Repair[];
+  onViewDetails?: (repair: Repair) => void;
+  statusFilter: RepairStatus | "all";
+  setStatusFilter: (value: RepairStatus | "all") => void;
+  deviceTypeFilter: DeviceType | "all";
+  setDeviceTypeFilter: (value: DeviceType | "all") => void;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
 }
 
-export function ArchivesTable({ repairs }: ArchivesTableProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-
-  const filteredRepairs = repairs.filter(
-    (repair) => {
-      const fullName = `${repair.client?.first_name || ''} ${repair.client?.last_name || ''}`.toLowerCase();
-      const phoneNumber = repair.client?.profile?.phone_number || '';
-      const repairId = repair.id?.toString() || '';
-
-      return (
-        fullName.includes(searchTerm.toLowerCase()) ||
-        phoneNumber.includes(searchTerm) ||
-        repair.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        repair.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        repairId.includes(searchTerm)
-      );
-    }
-  )
+export function ArchivesTable({
+  repairs,
+  onViewDetails,
+  statusFilter,
+  setStatusFilter,
+  deviceTypeFilter,
+  setDeviceTypeFilter,
+  searchTerm,
+  setSearchTerm,
+}: ArchivesTableProps) {
+  // All filtering is now handled by the parent component (ArchivesPage)
+  const filteredRepairs = repairs;
 
   return (
     <div className="space-y-4">
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher par ID, client, appareil..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select
+          value={statusFilter}
+          onValueChange={(value: RepairStatus | "all") =>
+            setStatusFilter(value)
+          }
+        >
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les statuts</SelectItem>
+            <SelectItem value="prete">Prête</SelectItem>
+            <SelectItem value="saisie">Saisie</SelectItem>
+            <SelectItem value="en-cours">En cours</SelectItem>
+            <SelectItem value="en-attente">En attente</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={deviceTypeFilter as any}
+          onValueChange={(value: any | "all") => setDeviceTypeFilter(value)}
+        >
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les types</SelectItem>
+            <SelectItem value="smartphone">Smartphone</SelectItem>
+            <SelectItem value="tablet">Tablette</SelectItem>
+            <SelectItem value="computer">Ordinateur</SelectItem>
+            <SelectItem value="other">Autres</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Table */}
       <div className="rounded-lg border border-border bg-card">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -74,11 +110,14 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                    Statut Paiement
                  </th>
+                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                   Statut
+                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRepairs.map((repair) => (
-                <tr key={repair.id} className="hover:bg-muted/50 transition-colors">
+                <tr key={repair.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => onViewDetails?.(repair)}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">#{repair.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium">
@@ -87,8 +126,8 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                     <div className="text-xs text-muted-foreground capitalize">{repair.deviceType}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium">{repair.client?.first_name} {repair.client?.last_name}</div>
-                    <div className="text-xs text-muted-foreground">{repair.client?.profile?.phone_number}</div>
+                    <div className="text-sm font-medium">{repair.client?.firstName} {repair.client?.lastName}</div>
+                    <div className="text-xs text-muted-foreground">{repair.client?.profile?.phoneNumber}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
@@ -100,10 +139,10 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {repair.created_at ? format(new Date(repair.created_at), "dd MMM yyyy", { locale: fr }) : "-"}
+                    {formatSafeDate(repair.createdAt)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                    {repair.recoveredAt ? format(new Date(repair.recoveredAt), "dd MMM yyyy", { locale: fr }) : "-"}
+                    {formatSafeDate(repair.recoveredAt)}
                   </td>
                    <td className="px-6 py-4 whitespace-nowrap">
                      <div className="text-sm font-medium">
@@ -131,6 +170,19 @@ export function ArchivesTable({ repairs }: ArchivesTableProps) {
                          Reste: {Number(repair.remainingBalance).toFixed(2)} DH
                        </div>
                      )}
+                   </td>
+                   <td className="px-6 py-4 whitespace-nowrap">
+                     <Badge 
+                       variant={
+                         repair.status === 'prete' ? 'default' :
+                         repair.status === 'en-cours' ? 'secondary' :
+                         'outline'
+                       }
+                     >
+                       {repair.status === 'prete' ? 'Prête' :
+                        repair.status === 'en-cours' ? 'En cours' :
+                        'Inconnu'}
+                     </Badge>
                    </td>
                 </tr>
               ))}

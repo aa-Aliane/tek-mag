@@ -25,10 +25,10 @@ class Command(BaseCommand):
         self.ProductModel = apps.get_model("tech", "ProductModel")
 
         # New models
-        self.Location = apps.get_model("tech", "Location")
-        self.Supplier = apps.get_model("tech", "Supplier")
-        self.StockItem = apps.get_model("tech", "StockItem")
-        self.StoreOrder = apps.get_model("tech", "StoreOrder")
+        self.Location = apps.get_model("stock", "Location")
+        self.Supplier = apps.get_model("stock", "Supplier")
+        self.StockItem = apps.get_model("stock", "StockItem")
+        self.StoreOrder = apps.get_model("stock", "StoreOrder")
         self.Repair = apps.get_model("repairs", "Repair")
         self.Issue = apps.get_model("repairs", "Issue")
         # Import the new models

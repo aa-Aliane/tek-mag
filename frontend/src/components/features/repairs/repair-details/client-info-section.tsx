@@ -15,14 +15,14 @@ export function ClientInfoSection({ repair }: ClientInfoSectionProps) {
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Nom</span>
           <span className="font-medium">
-            {repair.client?.first_name || ""} {repair.client?.last_name || ""}
+            {repair.client?.firstName || ""} {repair.client?.lastName || ""}
           </span>
         </div>
         <Separator />
         <div className="flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Téléphone</span>
           <span className="font-medium">
-            {repair.client?.profile?.phone_number || "Pas de numéro"}
+            {repair.client?.profile?.phoneNumber || "Pas de numéro"}
           </span>
         </div>
         {repair.client?.email && (

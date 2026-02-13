@@ -1,9 +1,9 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface SelectedIssue {
   issueId: string;
   issueName: string;
-  categoryType: 'part_based' | 'service_based';
+  categoryType: "part_based" | "service_based";
   selectedTierId?: number;
   customPrice?: number;
   notes?: string;
@@ -20,7 +20,11 @@ interface ReparationStore {
   setModel: (model: string) => void;
 
   selectedIssues: SelectedIssue[];
-  addIssue: (issueId: string | number, issueName: string, categoryType: 'part_based' | 'service_based') => void;
+  addIssue: (
+    issueId: string | number,
+    issueName: string,
+    categoryType: "part_based" | "service_based",
+  ) => void;
   removeIssue: (issueId: string | number) => void;
   updateIssueTier: (issueId: string | number, tierId: number) => void;
   updateIssueNotes: (issueId: string | number, notes: string) => void;
@@ -48,13 +52,13 @@ interface ReparationStore {
 }
 
 export const useReparationStore = create<ReparationStore>((set, get) => ({
-  deviceType: '',
+  deviceType: "",
   setDeviceType: (type) => set({ deviceType: type }),
 
-  brand: '',
+  brand: "",
   setBrand: (brand) => set({ brand }),
 
-  model: '',
+  model: "",
   setModel: (model) => set({ model }),
 
   selectedIssues: [],
@@ -62,41 +66,47 @@ export const useReparationStore = create<ReparationStore>((set, get) => ({
     set((state) => {
       const idStr = String(issueId);
       // Check if issue already exists
-      const exists = state.selectedIssues.some(issue => issue.issueId === idStr);
+      const exists = state.selectedIssues.some(
+        (issue) => issue.issueId === idStr,
+      );
       if (!exists) {
         return {
           selectedIssues: [
             ...state.selectedIssues,
-            { issueId: idStr, issueName, categoryType }
-          ]
+            { issueId: idStr, issueName, categoryType },
+          ],
         };
       }
       return state;
     }),
   removeIssue: (issueId) =>
     set((state) => ({
-      selectedIssues: state.selectedIssues.filter(issue => issue.issueId !== String(issueId))
+      selectedIssues: state.selectedIssues.filter(
+        (issue) => issue.issueId !== String(issueId),
+      ),
     })),
   updateIssueTier: (issueId, tierId) =>
     set((state) => ({
-      selectedIssues: state.selectedIssues.map(issue =>
-        issue.issueId === String(issueId) ? { ...issue, selectedTierId: tierId } : issue
-      )
+      selectedIssues: state.selectedIssues.map((issue) =>
+        issue.issueId === String(issueId)
+          ? { ...issue, selectedTierId: tierId }
+          : issue,
+      ),
     })),
   updateIssueNotes: (issueId, notes) =>
     set((state) => ({
-      selectedIssues: state.selectedIssues.map(issue =>
-        issue.issueId === String(issueId) ? { ...issue, notes } : issue
-      )
+      selectedIssues: state.selectedIssues.map((issue) =>
+        issue.issueId === String(issueId) ? { ...issue, notes } : issue,
+      ),
     })),
 
-  description: '',
+  description: "",
   setDescription: (description) => set({ description }),
 
-  accessories: '',
+  accessories: "",
   setAccessories: (accessories) => set({ accessories }),
 
-  password: '',
+  password: "",
   setPassword: (password) => set({ password }),
 
   depositReceived: false,
@@ -105,19 +115,20 @@ export const useReparationStore = create<ReparationStore>((set, get) => ({
   scheduledDate: null,
   setScheduledDate: (date) => set({ scheduledDate: date }),
 
-  clientSearch: '',
+  clientSearch: "",
   setClientSearch: (search) => set({ clientSearch: search }),
 
-  reset: () => set({
-    deviceType: '',
-    brand: '',
-    model: '',
-    selectedIssues: [],
-    description: '',
-    accessories: '',
-    password: '',
-    depositReceived: false,
-    scheduledDate: null,
-    clientSearch: '',
-  }),
+  reset: () =>
+    set({
+      deviceType: "",
+      brand: "",
+      model: "",
+      selectedIssues: [],
+      description: "",
+      accessories: "",
+      password: "",
+      depositReceived: false,
+      scheduledDate: null,
+      clientSearch: "",
+    }),
 }));

@@ -15,12 +15,12 @@ export function DatesInfoSection({
         <h3 className="font-semibold text-lg">Calendrier</h3>
       </div>
       <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-        {formatDate(repair.created_at, "dd MMMM yyyy") && (
+        {formatDate(repair.createdAt, "dd MMMM yyyy") && (
           <>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Créée le</span>
               <span className="font-medium text-sm">
-                {formatDate(repair.created_at, "dd MMMM yyyy")}
+                {formatDate(repair.createdAt, "dd MMMM yyyy")}
               </span>
             </div>
             <Separator />

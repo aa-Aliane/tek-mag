@@ -29,7 +29,7 @@ export function DiscountForm({
 
   // Calculate discount amount
   const calculateDiscount = () => {
-    const basePrice = Number(repair.final_price || repair.base_price || 0);
+    const basePrice = Number(repair.finalPrice || repair.basePrice || 0);
     const discount = parseFloat(discountValue || "0");
 
     if (isNaN(basePrice) || discountType === "none" || isNaN(discount)) {
@@ -81,7 +81,7 @@ export function DiscountForm({
   };
 
   const discountAmount = calculateDiscount();
-  const basePrice = Number(repair.final_price || repair.base_price || 0);
+  const basePrice = Number(repair.finalPrice || repair.basePrice || 0);
   const finalPrice = basePrice - discountAmount;
 
   const isSubmitDisabled = !(
@@ -143,11 +143,11 @@ export function DiscountForm({
           )}
 
           {/* Show existing discounts if any */}
-          {repair.total_discounts > 0 && (
+          {repair.totalDiscounts > 0 && (
             <div className="mt-3 pt-3 border-t border-amber-200">
               <div className="flex justify-between text-xs text-orange-600">
                 <span>Remises déjà appliquées</span>
-                <span>-{Number(repair.total_discounts || 0).toFixed(2)} €</span>
+                <span>-{Number(repair.totalDiscounts || 0).toFixed(2)} €</span>
               </div>
             </div>
           )}

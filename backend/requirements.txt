@@ -5,6 +5,7 @@ django-filter
 django-leaflet
 djangorestframework
 django-cors-headers
+djangorestframework-camel-case
 ipython
 pytest
 pytest-django
@@ -27,3 +28,4 @@ elasticsearch==8.17.0
 elasticsearch-dsl==8.17.0
 django-elasticsearch-dsl==8.0
 pytz
+

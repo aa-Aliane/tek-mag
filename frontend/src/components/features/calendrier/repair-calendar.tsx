@@ -45,9 +45,9 @@ export function RepairCalendar({ repairs, onSelectRepair, onAddRepair }: RepairC
 
   const handleNavigateToAddRepair = () => {
     if (selectedDate) {
-      router.push(`/dashboard/add-reparation?date=${selectedDate.toISOString()}`)
+      router.push(`/repairs/add?date=${selectedDate.toISOString()}`)
     } else {
-      router.push("/dashboard/add-reparation")
+      router.push("/repairs/add")
     }
   }
 

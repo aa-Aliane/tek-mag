@@ -4,7 +4,7 @@ init-backend:
 	@echo "${BLUE}Initializing backend...${NC}"
 
 	@echo "${YELLOW}Creating database migrations...${NC}"
-	@docker compose exec backend python manage.py makemigrations accounts tech repairs
+	@docker compose exec backend python manage.py makemigrations accounts tech repairs stock
 	@echo "${GREEN}Migrations created successfully!${NC}"
 
 
@@ -18,7 +18,7 @@ init-backend:
 .PHONY: migrate
 migrate:
 	@echo "${YELLOW}Creating database migrations...${NC}"
-	@docker compose exec backend python manage.py makemigrations accounts tech repairs
+	@docker compose exec backend python manage.py makemigrations accounts tech repairs stcok
 	@echo "${GREEN}Migrations created successfully!${NC}"
 
 	@echo "${YELLOW}Applying migrations...${NC}"

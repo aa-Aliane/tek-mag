@@ -101,14 +101,14 @@ export function PaginatedLayout<T>({
 
   return (
     <div className={`flex flex-col h-full ${className || ""}`}>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto">
         {children(items, isLoading, error, refetch)}
       </div>
 
       {showPagination && totalCount > 0 && (
         <div
           className={`mt-4 flex justify-center items-center ${paginationClassName || ""}`}
-          style={{ width: "40%", marginLeft: "auto", marginRight: "auto" }}
+          style={{ width: "60%", marginLeft: "auto", marginRight: "auto" }}
         >
           <Pagination
             currentPage={currentPage}

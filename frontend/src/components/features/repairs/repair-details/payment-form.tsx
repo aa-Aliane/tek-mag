@@ -104,7 +104,7 @@ export function PaymentForm({
 
   console.log("hiihihhih paymantAmount:", paymentAmount);
   console.log("hiihihhih finalAmount:", finalAmount);
-  console.log("hiihihhih finale price:", repair.final_price);
+  console.log("hiihihhih finale price:", repair.finalPrice);
 
   return (
     <div className="absolute inset-0 bg-white z-10 flex flex-col">
@@ -137,16 +137,16 @@ export function PaymentForm({
           <div className="flex justify-between items-center mb-2">
             <span className="font-semibold text-gray-700">Coût total</span>
             <span className="text-2xl font-bold text-blue-600">
-              {Number(repair.final_price || repair.base_price || 0).toFixed(2)}{" "}
+              {Number(repair.finalPrice || repair.basePrice || 0).toFixed(2)}{" "}
               €
             </span>
           </div>
 
           {/* Show discounts if any */}
-          {repair.total_discounts > 0 && (
+          {repair.totalDiscounts > 0 && (
             <div className="flex justify-between text-sm text-orange-600 mb-2">
               <span>Remises appliquées</span>
-              <span>-{Number(repair.total_discounts || 0).toFixed(2)} €</span>
+              <span>-{Number(repair.totalDiscounts || 0).toFixed(2)} €</span>
             </div>
           )}
 
@@ -159,7 +159,7 @@ export function PaymentForm({
               <div
                 className="bg-blue-600 h-2.5 rounded-full transition-all duration-500 ease-in-out"
                 style={{
-                  width: `${Math.min(100, (totalPaid / Number(repair.final_price || repair.base_price || 1)) * 100)}%`,
+                  width: `${Math.min(100, (totalPaid / Number(repair.finalPrice || repair.basePrice || 1)) * 100)}%`,
                 }}
               ></div>
             </div>
@@ -305,7 +305,7 @@ export function PaymentForm({
                 onClick={handleSubmit}
                 disabled={isSubmitDisabled}
               >
-                Confirmer le Paiement ({repair.remaining_balance} €)
+                Confirmer le Paiement ({repair.remainingBalance} €)
               </Button>
             </div>
           </div>

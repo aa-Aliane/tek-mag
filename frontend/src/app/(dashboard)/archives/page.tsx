@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Plus, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RepairsTable, RepairDetails } from "@/components/features/repairs";
+import { ArchivesTable, RepairDetails } from "@/components/features/repairs";
 import { useUpdateRepair, useCreateDiscount } from "@/hooks/use-repairs";
 import {
   type Repair,
@@ -120,7 +120,7 @@ export default function ArchivesPage() {
 
   const handleRestitution = (repair: Repair) => {
     const updateData: Partial<Repair> = {};
-    updateData.is_in_store = false;
+    updateData.isInStore = false;
     updateRepair.mutate(
       {
         id: String(repair.id),
@@ -144,14 +144,14 @@ export default function ArchivesPage() {
     method: PaymentMethod,
     note?: string,
   ) => {
-    const currentCard = Number(repair.card_payment || 0);
-    const currentCash = Number(repair.cash_payment || 0);
+    const currentCard = Number(repair.cardPayment || 0);
+    const currentCash = Number(repair.cashPayment || 0);
 
     const updateData: Partial<Repair> = {};
     if (method === "card") {
-      updateData.card_payment = String(currentCard + amount);
+      updateData.cardPayment = String(currentCard + amount);
     } else {
-      updateData.cash_payment = String(currentCash + amount);
+      updateData.cashPayment = String(currentCash + amount);
     }
 
     updateRepair.mutate(
@@ -242,13 +242,13 @@ export default function ArchivesPage() {
         subtitle="Gérez toutes vos réparations en cours"
       >
         <div className="flex justify-end">
-          <Button
-            className="gap-2"
-            onClick={() => router.push("/add-reparation")}
-          >
-            <Plus className="h-4 w-4" />
-            Nouvelle Réparation
-          </Button>
+            <Button
+              className="gap-2"
+              onClick={() => router.push("/repairs/add")}
+            >
+              <PlusCircle className="h-4 w-4" />
+              Nouvelle Réparation
+            </Button>
         </div>
       </SharedHeader>
 
@@ -263,17 +263,15 @@ export default function ArchivesPage() {
             className="flex-1"
           >
             {(repairs, isLoading, error, refetch) => (
-              <RepairsTable
+              <ArchivesTable
                 repairs={repairs}
                 onViewDetails={handleViewDetails}
-                onStatusChange={handleQuickStatusChange}
                 statusFilter={statusFilter}
                 setStatusFilter={setStatusFilter}
                 deviceTypeFilter={deviceTypeFilter}
                 setDeviceTypeFilter={setDeviceTypeFilter}
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
-                hiddenColumns={["status"]}
               />
             )}
           </PaginatedLayout>

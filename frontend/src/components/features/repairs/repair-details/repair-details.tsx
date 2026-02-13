@@ -114,7 +114,7 @@ export function RepairDetails({
           onPrint={handlePrint}
           isPaymentComplete={isPaymentComplete}
           remaining={remaining}
-          basePrice={repair.base_price || 0}
+          basePrice={repair.basePrice || 0}
           isPaymentFormVisible={isPaymentFormVisible}
           setIsPaymentFormVisible={setIsPaymentFormVisible}
           isDiscountFormVisible={isDiscountFormVisible}
@@ -128,8 +128,8 @@ export function RepairDetails({
 
             <IssuesAndCostSection
               repair={repair}
-              basePrice={repair.base_price || 0}
-              totalPaid={repair.total_paid || 0}
+              basePrice={repair.basePrice || 0}
+              totalPaid={repair.totalPaid || 0}
               remaining={remaining}
               cardPayment={cardPayment}
               cashPayment={cashPayment}

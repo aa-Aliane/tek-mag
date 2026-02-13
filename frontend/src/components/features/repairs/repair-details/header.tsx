@@ -45,7 +45,7 @@ export function RepairDetailsHeader({
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Créée le {formatDate(repair.created_at, "dd MMMM yyyy")}
+            Créée le {formatDate(repair.createdAt, "dd MMMM yyyy")}
           </p>
         </div>
         <Button
@@ -65,7 +65,7 @@ export function RepairDetailsHeader({
           Imprimer
         </Button>
 
-        {repair.is_in_store && repair.status === "prete" && onMarkRecovered && (
+        {repair.isInStore && repair.status === "prete" && onMarkRecovered && (
           <Button
             variant={isPaymentComplete ? "default" : "outline"}
             size="sm"
@@ -76,14 +76,14 @@ export function RepairDetailsHeader({
           </Button>
         )}
 
-        {repair.remaining_balance > 0 ? (
+        {repair.remainingBalance > 0 ? (
           <Button
             variant={remaining > 0 ? "default" : "outline"}
             size="sm"
             onClick={() => setIsPaymentFormVisible(true)}
           >
             <Wallet className="h-4 w-4 mr-2" />
-            {`${repair.remaining_balance} € à payer`}
+            {`${repair.remainingBalance} € à payer`}
           </Button>
         ) : null}
 

@@ -27,9 +27,9 @@ export function IssuesAndCostSection({
 
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          {repair.repair_issues?.map((repairIssue, idx) => (
+          {repair.repairIssues?.map((repairIssue, idx) => (
             <Badge key={idx} variant="secondary" className="text-sm">
-              {repairIssue.issue?.name || `Issue #${repairIssue.issue_id}`}
+              {repairIssue.issue?.name || `Issue #${repairIssue.issueId}`}
             </Badge>
           ))}
         </div>
@@ -54,10 +54,10 @@ export function IssuesAndCostSection({
               </div>
 
               {/* Show discounts if any */}
-              {repair.total_discounts > 0 && (
+              {repair.totalDiscounts > 0 && (
                 <div className="flex justify-between text-sm text-orange-600 mb-2">
                   <span>Remises</span>
-                  <span>-{repair.total_discounts} €</span>
+                  <span>-{repair.totalDiscounts} €</span>
                 </div>
               )}
 
@@ -65,7 +65,7 @@ export function IssuesAndCostSection({
               <div className="flex justify-between items-center mb-2">
                 <span className="font-medium text-gray-600">Prix final</span>
                 <span className="text-xl font-bold text-green-600">
-                  {Number(repair.final_price || basePrice).toFixed(2)} €
+                  {Number(repair.finalPrice || basePrice).toFixed(2)} €
                 </span>
               </div>
 
@@ -73,11 +73,11 @@ export function IssuesAndCostSection({
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-gray-500 mb-1">
                   <span>
-                    Payé: {Number(repair.total_paid || totalPaid).toFixed(2)} €
+                    Payé: {Number(repair.totalPaid || totalPaid).toFixed(2)} €
                   </span>
                   <span>
                     Reste:{" "}
-                    {Number(repair.remaining_balance || remaining).toFixed(2)} €
+                    {Number(repair.remainingBalance || remaining).toFixed(2)} €
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">

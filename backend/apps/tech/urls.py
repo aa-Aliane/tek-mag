@@ -4,22 +4,16 @@ from .views import (
     PartViewSet,
     BrandViewSet,
     ProductModelViewSet,
-    LocationViewSet,
-    SupplierViewSet,
-    StockItemViewSet,
-    StoreOrderViewSet,
     DeviceTypeViewSet,
+    SeriesViewSet,
 )
 
 router = DefaultRouter()
 router.register(r'parts', PartViewSet)
 router.register(r'brands', BrandViewSet)
 router.register(r'product-models', ProductModelViewSet)
-router.register(r'locations', LocationViewSet)
-router.register(r'suppliers', SupplierViewSet)
-router.register(r'stock-items', StockItemViewSet)
-router.register(r'store-orders', StoreOrderViewSet)
 router.register(r'device-types', DeviceTypeViewSet)
+router.register(r'series', SeriesViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -15,6 +15,7 @@ services:
       - migrations_accounts:/app/apps/accounts/migrations
       - migrations_tech:/app/apps/tech/migrations
       - migrations_repairs:/app/apps/repairs/migrations
+      - migrations_stock:/app/apps/stock/migrations
     ports:
       - "8001:8000"
     env_file:
@@ -45,6 +46,7 @@ volumes:
   migrations_accounts:
   migrations_tech:
   migrations_repairs:
+  migrations_stock:
   nextjs_cache:
   turbo_cache:
   node_modules_cache:
