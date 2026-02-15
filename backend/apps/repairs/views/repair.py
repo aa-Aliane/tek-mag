@@ -87,3 +87,6 @@ class RepairViewSet(viewsets.ModelViewSet):
     ]
     # Added: Allow frontend to sort by date or price
     ordering_fields = ["date", "created_at"]
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)

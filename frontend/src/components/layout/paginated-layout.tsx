@@ -6,10 +6,23 @@ import { Pagination } from "@/components/ui/pagination";
 import type { PaginatedResponse } from "@/types";
 
 interface PaginatedLayoutProps<T> {
-  // Query configuration
-  queryKey: any[];
-  queryFn: (page: number, pageSize: number) => Promise<PaginatedResponse<T>>;
+  // Query configuration (Optional if external data provided)
+  queryKey?: any[];
+  queryFn?: (page: number, pageSize: number) => Promise<PaginatedResponse<T>>;
   initialPageSize?: number;
+
+  // External state (Optional)
+  page?: number;
+  onPageChange?: (page: number) => void;
+  pageSize?: number;
+  onPageSizeChange?: (pageSize: number) => void;
+  
+  // External data (Optional)
+  data?: T[];
+  totalCount?: number;
+  isLoading?: boolean;
+  error?: Error | null;
+  refetch?: () => void;
 
   // Page content
   children: (
@@ -35,6 +48,15 @@ export function PaginatedLayout<T>({
   queryKey,
   queryFn,
   initialPageSize = 10,
+  page: externalPage,
+  onPageChange: externalOnPageChange,
+  pageSize: externalPageSize,
+  onPageSizeChange: externalOnPageSizeChange,
+  data: externalData,
+  totalCount: externalTotalCount,
+  isLoading: externalIsLoading,
+  error: externalError,
+  refetch: externalRefetch,
   children,
   className,
   showPagination = true,
@@ -44,60 +66,73 @@ export function PaginatedLayout<T>({
   staleTime = 5 * 60 * 1000, // 5 minutes
   refetchOnWindowFocus = false,
 }: PaginatedLayoutProps<T>) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [internalPage, setInternalPage] = useState(1);
+  const [internalPageSize, setInternalPageSize] = useState(initialPageSize);
+
+  const currentPage = externalPage ?? internalPage;
+  const currentPageSize = externalPageSize ?? internalPageSize;
+
   const [prevBaseQueryKey, setPrevBaseQueryKey] = useState(
-    queryKey.slice(0, -2),
+    queryKey ? queryKey.slice(0, -2) : [],
   );
-  const queryClient = useQueryClient();
 
   // Build dynamic query key including pagination params
-  const fullQueryKey = [...queryKey, currentPage, pageSize];
+  const fullQueryKey = queryKey ? [...queryKey, currentPage, currentPageSize] : ["paginated-layout-placeholder"];
 
-  console.log("Full query key:", fullQueryKey);
-
-  const { data, isLoading, error, refetch } = useQuery<
+  const { data: internalDataResponse, isLoading: internalIsLoading, error: internalError, refetch: internalRefetch } = useQuery<
     PaginatedResponse<T>,
     Error
   >({
     queryKey: fullQueryKey,
-    queryFn: () => {
-      console.log("Query function called with:", { currentPage, pageSize });
-      return queryFn(currentPage, pageSize);
-    },
+    queryFn: queryFn ? () => queryFn(currentPage, currentPageSize) : () => Promise.reject("No queryFn provided"),
     staleTime,
     refetchOnWindowFocus,
+    enabled: !!queryKey && !!queryFn,
   });
 
-  const items = data?.results || [];
-  const totalCount = data?.count || 0;
-  const totalPages = Math.ceil(totalCount / pageSize);
+  const items = externalData ?? internalDataResponse?.results ?? [];
+  const totalCount = externalTotalCount ?? internalDataResponse?.count ?? 0;
+  const isLoading = externalIsLoading ?? internalIsLoading;
+  const error = externalError ?? internalError;
+  const refetch = externalRefetch ?? internalRefetch;
+  
+  const totalPages = Math.ceil(totalCount / currentPageSize);
 
   const handlePageChange = (page: number) => {
-    console.log("Page change requested:", page);
-    setCurrentPage(page);
+    if (externalOnPageChange) {
+      externalOnPageChange(page);
+    } else {
+      setInternalPage(page);
+    }
   };
 
   const handlePageSizeChange = (newPageSize: number) => {
-    console.log("Page size change requested:", newPageSize);
-    setPageSize(newPageSize);
-    if (autoResetPageOnChange) {
-      setCurrentPage(1);
+    if (externalOnPageSizeChange) {
+      externalOnPageSizeChange(newPageSize);
+    } else {
+      setInternalPageSize(newPageSize);
+      if (autoResetPageOnChange) {
+        setInternalPage(1);
+      }
     }
   };
 
   // Reset page when base query dependencies change (filters, etc.), but NOT when page changes
-  const baseQueryKey = queryKey.slice(0, -2);
+  const baseQueryKey = queryKey ? queryKey.slice(0, -2) : [];
   useEffect(() => {
     if (
       autoResetPageOnChange &&
+      queryKey &&
       JSON.stringify(baseQueryKey) !== JSON.stringify(prevBaseQueryKey)
     ) {
-      console.log("Base query key changed, resetting page to 1");
-      setCurrentPage(1);
+      if (externalOnPageChange) {
+        externalOnPageChange(1);
+      } else {
+        setInternalPage(1);
+      }
       setPrevBaseQueryKey(baseQueryKey);
     }
-  }, [baseQueryKey, prevBaseQueryKey, autoResetPageOnChange]);
+  }, [baseQueryKey, prevBaseQueryKey, autoResetPageOnChange, queryKey, externalOnPageChange]);
 
   return (
     <div className={`flex flex-col h-full ${className || ""}`}>
@@ -114,7 +149,7 @@ export function PaginatedLayout<T>({
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
-            pageSize={showPageSizeSelector ? pageSize : undefined}
+            pageSize={showPageSizeSelector ? currentPageSize : undefined}
             onPageSizeChange={
               showPageSizeSelector ? handlePageSizeChange : undefined
             }

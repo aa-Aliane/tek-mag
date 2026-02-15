@@ -35,6 +35,9 @@ class RepairSerializer(serializers.ModelSerializer):
     repair_issue_data = serializers.ListField(
         child=serializers.DictField(), write_only=True, required=False
     )
+    send_notification = serializers.BooleanField(
+        write_only=True, required=False, default=False
+    )
 
     # --- The "Logic" Fields (Properties) ---
     base_price = serializers.DecimalField(
@@ -86,6 +89,7 @@ class RepairSerializer(serializers.ModelSerializer):
             "total_paid",
             "remaining_balance",
             "payment_status",
+            "send_notification",
             "created_at",
             "updated_at",
         ]
@@ -114,7 +118,16 @@ class RepairSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        # --- DEBUG START ---
+        print("\n--- DEBUGGING SERIALIZER UPDATE ---")
+        print(f"Keys in validated_data: {list(validated_data.keys())}")
+        # -------------------
         repair_issue_data = validated_data.pop("repair_issue_data", None)
+        should_notify = validated_data.pop("send_notification", False)
+        old_status = instance.status
+        new_status = validated_data.get("status", old_status)
+
+        print(f"should_notify value: {should_notify}")
 
         # Update the repair instance
         for attr, value in validated_data.items():
@@ -125,4 +138,22 @@ class RepairSerializer(serializers.ModelSerializer):
         if repair_issue_data is not None:
             self._process_issues(instance, repair_issue_data)
 
+        if should_notify:
+            self._send_status_change_notification(instance)
+
         return instance
+
+    def _send_status_change_notification(self, instance):
+        from django.conf import settings
+        from django.core.mail import send_mail
+
+        subject = f"Mise à jour de votre réparation #{instance.id}"
+        message = f"Bonjour {instance.client.username},\n\nVotre réparation #{instance.id} a été mise à jour. Le nouveau statut est : {instance.status}.\n\nMerci de votre confiance."
+
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[instance.client.email],
+            fail_silently=False,
+        )

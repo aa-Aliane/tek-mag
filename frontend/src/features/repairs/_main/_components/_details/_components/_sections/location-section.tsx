@@ -6,44 +6,39 @@ import {
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Repair } from "@/types";
-import { RefreshCcw, Send } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { StatusUpdateDialog } from "../../_layouts";
-import { useUpdateRepairStatus } from "../../_queries/use-details";
-import { UpdateStatusForm } from "../../_forms";
+import { LocationUpdateDialog } from "../../_layouts";
+import { useUpdateRepairLocation } from "../../_queries/use-details";
+import { UpdateLocationForm } from "../../_forms";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {
   repair: Repair;
 }
 
-const StatusSection: React.FC<Props> = ({ repair }) => {
+const LocationSection: React.FC<Props> = ({ repair }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { mutate: updateStatus } = useUpdateRepairStatus();
+  const { mutate: updateLocation } = useUpdateRepairLocation();
 
   const handleUpdateClick = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (data: {
-    status: string;
-    sendNotification: boolean;
-  }) => {
-    updateStatus({
+  const handleSubmit = (data: { isInStore: boolean }) => {
+    updateLocation({
       repairId: repair.id,
-      status: data.status,
-      sendNotification: data.sendNotification,
-      comment: "",
+      isInStore: data.isInStore,
     });
     setIsDialogOpen(false);
   };
 
   return (
-    <AccordionItem value="item-3">
+    <AccordionItem value="item-location">
       <AccordionTrigger className="flex flex-row items-center gap-2">
         <div className="flex flex-row items-center gap-2">
-          <RefreshCcw className="h-4 w-4" />
-          Status de la réparation
+          <MapPin className="h-4 w-4" />
+          Emplacement de la réparation
         </div>
       </AccordionTrigger>
       <AccordionContent>
@@ -51,15 +46,14 @@ const StatusSection: React.FC<Props> = ({ repair }) => {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h4 className="text-sm font-medium leading-none">
-                État de la réparation
+                Localisation actuelle
               </h4>
             </div>
             <Badge variant="secondary" className="capitalize">
-              {repair.status}
+              {repair.isInStore ? "En magasin" : "Chez le client"}
             </Badge>
           </div>
 
-          {/* Using a Select here is much better than a random button */}
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -67,28 +61,27 @@ const StatusSection: React.FC<Props> = ({ repair }) => {
               className="w-full justify-start text-left font-normal"
               onClick={handleUpdateClick}
             >
-              <RefreshCcw className="mr-2 h-3 w-3 opacity-50" />
-              <span>Modifier le statut...</span>
+              <MapPin className="mr-2 h-3 w-3 opacity-50" />
+              <span>Modifier l'emplacement...</span>
             </Button>
           </div>
 
-          {/* This is the dialog that uses your DialogLayout internally */}
-          <StatusUpdateDialog
+          <LocationUpdateDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
             repair={repair}
           >
-            <UpdateStatusForm
+            <UpdateLocationForm
               onSubmit={handleSubmit}
               onCancel={() => setIsDialogOpen(false)}
               isLoading={false}
-              currentStatus={repair.status}
+              isInStore={repair.isInStore}
             />
-          </StatusUpdateDialog>
+          </LocationUpdateDialog>
         </div>
       </AccordionContent>
     </AccordionItem>
   );
 };
 
-export default StatusSection;
+export default LocationSection;

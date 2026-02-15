@@ -250,13 +250,20 @@ ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_EMAIL_CONFIRMATION_HMAC = False
 
 # host email configuration
+# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+# EMAIL_HOST = "smtp.gmail.com"
+# EMAIL_USE_TLS = True
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = "aliane781@gmail.com"
+# DEFAULT_FROM_EMAIL = "aliane781@gmail.com"
+# EMAIL_HOST_PASSWORD = "oxxh zdhy ausn vdrl"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = "aliane781@gmail.com"
-DEFAULT_FROM_EMAIL = "aliane781@gmail.com"
-EMAIL_HOST_PASSWORD = "oxxh zdhy ausn vdrl"
+EMAIL_HOST = "mailpit"
+EMAIL_PORT = 1025
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
+DEFAULT_FROM_EMAIL = "tech-support@yourstore.com"
 # =========================================
 # INTERNATIONALIZATION
 # =========================================

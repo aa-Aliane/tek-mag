@@ -1,0 +1,66 @@
+frontend/src/features/repairs
+├── _add
+│   ├── _components
+│   │   ├── client
+│   │   │   └── client-step.tsx
+│   │   ├── device
+│   │   │   ├── device-step.tsx
+│   │   │   └── device-type-grid.tsx
+│   │   ├── issues
+│   │   │   ├── issue-card.tsx
+│   │   │   ├── issue-details-form.tsx
+│   │   │   ├── issues-grid.tsx
+│   │   │   ├── issues-step.tsx
+│   │   │   ├── quality-tier-dialog.tsx
+│   │   │   └── quality-tier-selector.tsx
+│   │   └── payment
+│   │       ├── discount-section.tsx
+│   │       ├── index.ts
+│   │       ├── payment-methods.tsx
+│   │       └── payment-step.tsx
+│   ├── _hooks
+│   │   ├── use-client-selection.ts
+│   │   ├── use-device-selection.ts
+│   │   └── use-issue-pricing.ts
+│   ├── index.ts
+│   ├── _layouts
+│   │   ├── payment-layout.tsx
+│   │   ├── step-layout.tsx
+│   │   ├── summary-sidebar.tsx
+│   │   └── use-summary-layout.ts
+│   ├── _queries
+│   │   └── use-issue-pricing-queries.ts
+│   ├── _types
+│   └── _utils
+│       └── device-helpers.tsx
+├── edit
+│   └── _components
+│       └── edit-view.tsx
+├── _main
+│   ├── _components
+│   │   ├── _details
+│   │   │   ├── _components
+│   │   │   │   ├── drawer.tsx
+│   │   │   │   └── _sections
+│   │   │   │       ├── accessory-section.tsx
+│   │   │   │       ├── info-section.tsx
+│   │   │   │       └── status-section.tsx
+│   │   │   └── index.ts
+│   │   ├── repair-actions-bar.tsx
+│   │   ├── repair-card.tsx
+│   │   ├── repair-details-drawer.tsx
+│   │   ├── repair-list-container.tsx
+│   │   ├── repairs-table.tsx
+│   │   ├── repairs-view.tsx
+│   │   └── stats
+│   │       └── repair-highlight-stats.tsx
+│   ├── _hooks
+│   │   ├── use-repair-actions.ts
+│   │   └── use-repair-list.ts
+│   ├── index.ts
+│   ├── _layouts
+│   └── _queries
+│       └── use-repairs-queries.ts
+└── _shared
+
+23 directories, 40 files

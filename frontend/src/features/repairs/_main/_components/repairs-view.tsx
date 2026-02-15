@@ -13,46 +13,46 @@ import { RepairDetailsDrawer } from "./_details";
 import { RepairHighlightStats } from "./stats/repair-highlight-stats";
 import { useRepairList } from "../_hooks/use-repair-list";
 import { useRepairActions } from "../_hooks/use-repair-actions";
-import { fetchRepairsApi } from "../_queries/use-repairs-queries";
+import { useRepairStore } from "../../_shared/_store/use-repair-store";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {}
 
 export const RepairsView: React.FC<Props> = ({ className, ...rest }) => {
   const router = useRouter();
-  const { currentUser } = useUserRole();
+  
+  // Directly from store
+  const searchTerm = useRepairStore((s) => s.searchTerm);
+  const setSearchTerm = useRepairStore((s) => s.setSearchTerm);
+  const statusFilter = useRepairStore((s) => s.statusFilter);
+  const setStatusFilter = useRepairStore((s) => s.setStatusFilter);
+  const deviceTypeFilter = useRepairStore((s) => s.deviceTypeFilter);
+  const setDeviceTypeFilter = useRepairStore((s) => s.setDeviceTypeFilter);
+  const page = useRepairStore((s) => s.page);
+  const setPage = useRepairStore((s) => s.setPage);
+  const pageSize = useRepairStore((s) => s.pageSize);
+  const setPageSize = useRepairStore((s) => s.setPageSize);
+  const selectedRepair = useRepairStore((s) => s.selectedRepair);
+  const isDetailsOpen = useRepairStore((s) => s.isDetailsOpen);
+  const handleViewDetails = useRepairStore((s) => s.handleViewDetails);
+  const handleCloseDetails = useRepairStore((s) => s.handleCloseDetails);
+
+  // Data hook (Now only returns data-related fields)
   const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    deviceTypeFilter,
-    setDeviceTypeFilter,
-    selectedRepair,
-    isDetailsOpen,
-    handleViewDetails,
-    handleCloseDetails,
+    repairs,
+    totalCount,
+    isLoading,
+    error,
+    refetch,
   } = useRepairList();
 
+  // Actions hook
   const {
-    handleStatusChange,
     handleQuickStatusChange,
-    handleSchedule,
     handleLocationChange,
-    handleRestitution,
-    handleAddPayment,
-    handleAddDiscount,
-    handleDeletePayment,
-    handleMarkRecovered,
     isLocationUpdating,
     isStatusUpdating,
     updatingRepairId,
   } = useRepairActions();
-
-  // Create query function that uses current filter values
-  const fetchRepairs = (page: number, pageSize: number) =>
-    fetchRepairsApi(page, pageSize, statusFilter, deviceTypeFilter, searchTerm);
-
-  const baseQueryKey = ["repairs", statusFilter, deviceTypeFilter, searchTerm];
 
   return (
     <DashboardLayout className={cn(className)} {...rest}>
@@ -62,14 +62,20 @@ export const RepairsView: React.FC<Props> = ({ className, ...rest }) => {
         <RepairHighlightStats className="mb-4 sm:mb-6" />
 
         <PaginatedLayout
-          queryKey={baseQueryKey}
-          queryFn={fetchRepairs}
-          initialPageSize={10}
+          data={repairs}
+          totalCount={totalCount}
+          isLoading={isLoading}
+          error={error}
+          refetch={refetch}
+          page={page}
+          onPageChange={setPage}
+          pageSize={pageSize}
+          onPageSizeChange={setPageSize}
           className="flex-1"
         >
-          {(repairs) => (
+          {(items) => (
             <RepairListContainer
-              repairs={repairs}
+              repairs={items}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               statusFilter={statusFilter}

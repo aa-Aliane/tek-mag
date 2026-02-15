@@ -1,4 +1,9 @@
 services:
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
   db:
     image: postgres:16-alpine
     volumes:
@@ -25,6 +30,7 @@ services:
       bash -c "uvicorn conf.asgi:application --host 0.0.0.0 --port 8000 --reload"
     depends_on:
       - db
+      - mailpit
 
   frontend:
     build: ./frontend

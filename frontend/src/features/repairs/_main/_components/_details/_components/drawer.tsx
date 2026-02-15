@@ -13,9 +13,11 @@ import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Repair } from "@/types";
 import Link from "next/link";
-import { Printer, Edit3, X, Laptop, Package } from "lucide-react"; // Icons
+import { Printer, Edit3, X } from "lucide-react"; // Icons
 import InfoSection from "./_sections/info-section";
 import AccessorySection from "./_sections/accessory-section";
+import StatusSection from "./_sections/status-section";
+import LocationSection from "./_sections/location-section";
 
 interface Props extends React.ComponentPropsWithoutRef<"div"> {
   repair: Repair | null;
@@ -54,12 +56,13 @@ const RepairDetailsDrawer: React.FC<Props> = ({ repair, onClose, ...rest }) => {
         <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar">
           <Accordion
             type="multiple"
-            defaultValue={["item-1", "item-2"]}
+            defaultValue={["item-1", "item-2", "item-3", "item-location"]}
             className="w-full"
           >
             <InfoSection repair={repair} />
-
             <AccessorySection repair={repair} />
+            <StatusSection repair={repair} />
+            <LocationSection repair={repair} />
           </Accordion>
         </div>
 

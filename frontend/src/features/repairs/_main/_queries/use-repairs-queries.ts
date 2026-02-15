@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api/client";
 import { Repair, PaginatedResponse, RepairStatus, DeviceType } from "@/types";
+import { useRepairStore } from "../../_shared/_store/use-repair-store";
 
 export interface RepairsQueryParams {
   page: number;
@@ -33,6 +34,11 @@ export const fetchRepairsApi = async (
   return response.data;
 };
 
+export const fetchRepairApi = async (id: string): Promise<Repair> => {
+  const response = await api.get(`/repairs/repairs/${id}/`);
+  return response.data;
+};
+
 export const useRepairs = ({
   page,
   pageSize,
@@ -43,6 +49,30 @@ export const useRepairs = ({
   return useQuery({
     queryKey: ["repairs", { page, pageSize, status, deviceType, searchTerm }],
     queryFn: () => fetchRepairsApi(page, pageSize, status, deviceType, searchTerm),
+  });
+};
+
+export const useRepair = (id: string | null) => {
+  return useQuery({
+    queryKey: ["repair", id],
+    queryFn: () => (id ? fetchRepairApi(id) : Promise.reject("No ID")),
+    enabled: !!id,
+  });
+};
+
+export const useRepairListQuery = () => {
+  const page = useRepairStore((s) => s.page);
+  const pageSize = useRepairStore((s) => s.pageSize);
+  const statusFilter = useRepairStore((s) => s.statusFilter);
+  const deviceTypeFilter = useRepairStore((s) => s.deviceTypeFilter);
+  const searchTerm = useRepairStore((s) => s.searchTerm);
+
+  return useRepairs({
+    page,
+    pageSize,
+    status: statusFilter,
+    deviceType: deviceTypeFilter,
+    searchTerm,
   });
 };
 
