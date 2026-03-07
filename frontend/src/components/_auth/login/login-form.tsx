@@ -32,7 +32,7 @@ export function LoginForm({
     e.preventDefault();
     try {
       await login({ username, password });
-      router.push("/");
+      router.push("/repairs");
     } catch (err) {
       // Error is handled by the hook
     }

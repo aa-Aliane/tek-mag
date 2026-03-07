@@ -1,28 +1,25 @@
-from apps.tech.models import Brand, Part, ProductModel
+from apps.tech.models import Part
 from apps.tech.serializers.product_model import ProductModelSerializer
-from rest_framework import serializers
+
+from .base_product import BaseProductSerializer
+from .part_type import PartTypeSerializer
+from .product_model import ProductModelSerializer
 
 
-class PartSerializer(serializers.ModelSerializer):
-    brand_name = serializers.CharField(source="brand.name", read_only=True)
-    compatible_models = ProductModelSerializer(many=True, read_only=True)
+class PartSerializer(BaseProductSerializer):
 
     class Meta:
         model = Part
-        fields = [
-            "id",
-            "name",
-            "ean13",
-            "sku",
-            "serial_number",
-            "image_url",
-            "price",
-            "repair_price",
-            "special_price",
-            "other_price",
-            "brand",
-            "brand_name",
-            "compatible_models",
-            "created_at",
-            "updated_at",
-        ]
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        reprentation = super().to_representation(instance)
+
+        if instance.part_type:
+            reprentation["part_type"] = PartTypeSerializer(instance.part_type).data
+        if instance.compatible_models:
+            reprentation["compatible_models"] = ProductModelSerializer(
+                instance.compatible_models.all(), many=True
+            ).data
+
+        return reprentation

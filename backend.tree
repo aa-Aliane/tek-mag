@@ -1,0 +1,375 @@
+backend
+├── apps
+│   ├── accounts
+│   │   ├── adapter.py
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── authentication.py
+│   │   ├── __init__.py
+│   │   ├── load.py
+│   │   ├── management
+│   │   │   └── commands
+│   │   │       ├── generate_test_data.py
+│   │   │       └── load_clients.py
+│   │   ├── migrations
+│   │   ├── models
+│   │   │   ├── email_verification_code.py
+│   │   │   ├── __init__.py
+│   │   │   ├── profile.py
+│   │   │   └── user.py
+│   │   ├── serializers
+│   │   │   ├── account_user_details.py
+│   │   │   ├── custom_registration.py
+│   │   │   ├── __init__.py
+│   │   │   ├── profile.py
+│   │   │   └── user.py
+│   │   ├── signals.py
+│   │   ├── urls.py
+│   │   └── views
+│   │       ├── __init__.py
+│   │       ├── mobile_login_view.py
+│   │       ├── profile.py
+│   │       └── user.py
+│   ├── _common
+│   │   └── pagination.py
+│   ├── repairs
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── __init__.py
+│   │   ├── management
+│   │   │   ├── commands
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── load_reparations.py
+│   │   │   │   └── __pycache__
+│   │   │   │       └── load_reparations.cpython-312.pyc
+│   │   │   └── __init__.py
+│   │   ├── migrations
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── issue.py
+│   │   │   └── repair.py
+│   │   ├── serializers
+│   │   │   ├── __init__.py
+│   │   │   ├── issue.py
+│   │   │   └── repair.py
+│   │   ├── urls.py
+│   │   └── views
+│   │       ├── __init__.py
+│   │       ├── issue.py
+│   │       └── repair.py
+│   ├── sales
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── migrations
+│   │   ├── models
+│   │   │   ├── discount.py
+│   │   │   ├── __init__.py
+│   │   │   ├── payment.py
+│   │   │   └── refund.py
+│   │   ├── serializers
+│   │   │   ├── discount.py
+│   │   │   ├── __init__.py
+│   │   │   ├── payment.py
+│   │   │   └── refund.py
+│   │   ├── urls.py
+│   │   └── views
+│   │       ├── discount.py
+│   │       ├── __init__.py
+│   │       ├── payment.py
+│   │       └── refund.py
+│   ├── stock
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── __init__.py
+│   │   ├── management
+│   │   │   └── commands
+│   │   ├── migrations
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── location.py
+│   │   │   ├── stock_item.py
+│   │   │   ├── store_order.py
+│   │   │   └── supplier.py
+│   │   ├── serializers
+│   │   │   ├── __init__.py
+│   │   │   ├── location.py
+│   │   │   ├── stock_item.py
+│   │   │   ├── store_order.py
+│   │   │   └── supplier.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   ├── views
+│   │   │   ├── __init__.py
+│   │   │   ├── location_viewset.py
+│   │   │   ├── stock_item_viewset.py
+│   │   │   ├── store_order_viewset.py
+│   │   │   └── supplier_viewset.py
+│   │   └── views.py
+│   └── tech
+│       ├── admin.py
+│       ├── apps.py
+│       ├── filters
+│       │   ├── __init__.py
+│       │   └── part_variant.py
+│       ├── management
+│       │   └── commands
+│       │       ├── create_basic_users.py
+│       │       ├── generate_remaining_tech_data.py
+│       │       ├── import_smart_devices_csv.py
+│       │       ├── populate-tech.py
+│       │       └── __pycache__
+│       │           └── generate_remaining_tech_data.cpython-312.pyc
+│       ├── migrations
+│       ├── models
+│       │   ├── brand.py
+│       │   ├── color.py
+│       │   ├── device_type.py
+│       │   ├── __init__.py
+│       │   ├── part.py
+│       │   ├── part_type.py
+│       │   ├── part_variant.py
+│       │   ├── product_model.py
+│       │   ├── quality_tier.py
+│       │   └── series.py
+│       ├── pagination.py
+│       ├── serializers
+│       │   ├── brand.py
+│       │   ├── color.py
+│       │   ├── device_type.py
+│       │   ├── __init__.py
+│       │   ├── part.py
+│       │   ├── part_type.py
+│       │   ├── part_variant.py
+│       │   ├── product_model.py
+│       │   ├── quality_tier.py
+│       │   └── series.py
+│       ├── urls.py
+│       └── views
+│           ├── brand.py
+│           ├── color.py
+│           ├── device_type.py
+│           ├── __init__.py
+│           ├── part.py
+│           ├── part_type.py
+│           ├── part_variant.py
+│           ├── product_model.py
+│           ├── quality_tier.py
+│           └── series.py
+├── conf
+│   ├── asgi.py
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── settings.cpython-312.pyc
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── Dockerfile
+├── manage.py
+├── media
+│   └── profile_pics
+│       └── aliane_ahmed_amine.png
+├── prod.dockerfile
+├── requirements.txt
+├── smart_devices_2025.csv
+├── staticfiles
+│   ├── account
+│   │   └── js
+│   │       ├── account.js
+│   │       └── onload.js
+│   ├── admin
+│   │   ├── css
+│   │   │   ├── autocomplete.css
+│   │   │   ├── base.css
+│   │   │   ├── changelists.css
+│   │   │   ├── dark_mode.css
+│   │   │   ├── dashboard.css
+│   │   │   ├── forms.css
+│   │   │   ├── login.css
+│   │   │   ├── nav_sidebar.css
+│   │   │   ├── responsive.css
+│   │   │   ├── responsive_rtl.css
+│   │   │   ├── rtl.css
+│   │   │   ├── unusable_password_field.css
+│   │   │   ├── vendor
+│   │   │   │   └── select2
+│   │   │   │       ├── LICENSE-SELECT2.md
+│   │   │   │       ├── select2.css
+│   │   │   │       └── select2.min.css
+│   │   │   └── widgets.css
+│   │   ├── img
+│   │   │   ├── calendar-icons.svg
+│   │   │   ├── gis
+│   │   │   │   ├── move_vertex_off.svg
+│   │   │   │   └── move_vertex_on.svg
+│   │   │   ├── icon-addlink.svg
+│   │   │   ├── icon-alert.svg
+│   │   │   ├── icon-calendar.svg
+│   │   │   ├── icon-changelink.svg
+│   │   │   ├── icon-clock.svg
+│   │   │   ├── icon-deletelink.svg
+│   │   │   ├── icon-hidelink.svg
+│   │   │   ├── icon-no.svg
+│   │   │   ├── icon-unknown-alt.svg
+│   │   │   ├── icon-unknown.svg
+│   │   │   ├── icon-viewlink.svg
+│   │   │   ├── icon-yes.svg
+│   │   │   ├── inline-delete.svg
+│   │   │   ├── LICENSE
+│   │   │   ├── README.txt
+│   │   │   ├── search.svg
+│   │   │   ├── selector-icons.svg
+│   │   │   ├── sorting-icons.svg
+│   │   │   ├── tooltag-add.svg
+│   │   │   └── tooltag-arrowright.svg
+│   │   └── js
+│   │       ├── actions.js
+│   │       ├── admin
+│   │       │   ├── DateTimeShortcuts.js
+│   │       │   └── RelatedObjectLookups.js
+│   │       ├── autocomplete.js
+│   │       ├── calendar.js
+│   │       ├── cancel.js
+│   │       ├── change_form.js
+│   │       ├── core.js
+│   │       ├── filters.js
+│   │       ├── inlines.js
+│   │       ├── jquery.init.js
+│   │       ├── nav_sidebar.js
+│   │       ├── popup_response.js
+│   │       ├── prepopulate_init.js
+│   │       ├── prepopulate.js
+│   │       ├── SelectBox.js
+│   │       ├── SelectFilter2.js
+│   │       ├── theme.js
+│   │       ├── unusable_password_field.js
+│   │       ├── urlify.js
+│   │       └── vendor
+│   │           ├── jquery
+│   │           │   ├── jquery.js
+│   │           │   ├── jquery.min.js
+│   │           │   └── LICENSE.txt
+│   │           ├── select2
+│   │           │   ├── i18n
+│   │           │   │   ├── af.js
+│   │           │   │   ├── ar.js
+│   │           │   │   ├── az.js
+│   │           │   │   ├── bg.js
+│   │           │   │   ├── bn.js
+│   │           │   │   ├── bs.js
+│   │           │   │   ├── ca.js
+│   │           │   │   ├── cs.js
+│   │           │   │   ├── da.js
+│   │           │   │   ├── de.js
+│   │           │   │   ├── dsb.js
+│   │           │   │   ├── el.js
+│   │           │   │   ├── en.js
+│   │           │   │   ├── es.js
+│   │           │   │   ├── et.js
+│   │           │   │   ├── eu.js
+│   │           │   │   ├── fa.js
+│   │           │   │   ├── fi.js
+│   │           │   │   ├── fr.js
+│   │           │   │   ├── gl.js
+│   │           │   │   ├── he.js
+│   │           │   │   ├── hi.js
+│   │           │   │   ├── hr.js
+│   │           │   │   ├── hsb.js
+│   │           │   │   ├── hu.js
+│   │           │   │   ├── hy.js
+│   │           │   │   ├── id.js
+│   │           │   │   ├── is.js
+│   │           │   │   ├── it.js
+│   │           │   │   ├── ja.js
+│   │           │   │   ├── ka.js
+│   │           │   │   ├── km.js
+│   │           │   │   ├── ko.js
+│   │           │   │   ├── lt.js
+│   │           │   │   ├── lv.js
+│   │           │   │   ├── mk.js
+│   │           │   │   ├── ms.js
+│   │           │   │   ├── nb.js
+│   │           │   │   ├── ne.js
+│   │           │   │   ├── nl.js
+│   │           │   │   ├── pl.js
+│   │           │   │   ├── ps.js
+│   │           │   │   ├── pt-BR.js
+│   │           │   │   ├── pt.js
+│   │           │   │   ├── ro.js
+│   │           │   │   ├── ru.js
+│   │           │   │   ├── sk.js
+│   │           │   │   ├── sl.js
+│   │           │   │   ├── sq.js
+│   │           │   │   ├── sr-Cyrl.js
+│   │           │   │   ├── sr.js
+│   │           │   │   ├── sv.js
+│   │           │   │   ├── th.js
+│   │           │   │   ├── tk.js
+│   │           │   │   ├── tr.js
+│   │           │   │   ├── uk.js
+│   │           │   │   ├── vi.js
+│   │           │   │   ├── zh-CN.js
+│   │           │   │   └── zh-TW.js
+│   │           │   ├── LICENSE.md
+│   │           │   ├── select2.full.js
+│   │           │   └── select2.full.min.js
+│   │           └── xregexp
+│   │               ├── LICENSE.txt
+│   │               ├── xregexp.js
+│   │               └── xregexp.min.js
+│   ├── facebook
+│   │   └── js
+│   │       └── fbconnect.js
+│   └── rest_framework
+│       ├── css
+│       │   ├── bootstrap.min.css
+│       │   ├── bootstrap.min.css.map
+│       │   ├── bootstrap-theme.min.css
+│       │   ├── bootstrap-theme.min.css.map
+│       │   ├── bootstrap-tweaks.css
+│       │   ├── default.css
+│       │   ├── font-awesome-4.0.3.css
+│       │   └── prettify.css
+│       ├── docs
+│       │   ├── css
+│       │   │   ├── base.css
+│       │   │   ├── highlight.css
+│       │   │   └── jquery.json-view.min.css
+│       │   ├── img
+│       │   │   ├── favicon.ico
+│       │   │   └── grid.png
+│       │   └── js
+│       │       ├── api.js
+│       │       ├── highlight.pack.js
+│       │       └── jquery.json-view.min.js
+│       ├── fonts
+│       │   ├── fontawesome-webfont.eot
+│       │   ├── fontawesome-webfont.svg
+│       │   ├── fontawesome-webfont.ttf
+│       │   ├── fontawesome-webfont.woff
+│       │   ├── glyphicons-halflings-regular.eot
+│       │   ├── glyphicons-halflings-regular.svg
+│       │   ├── glyphicons-halflings-regular.ttf
+│       │   ├── glyphicons-halflings-regular.woff
+│       │   └── glyphicons-halflings-regular.woff2
+│       ├── img
+│       │   ├── glyphicons-halflings.png
+│       │   ├── glyphicons-halflings-white.png
+│       │   └── grid.png
+│       └── js
+│           ├── ajax-form.js
+│           ├── bootstrap.min.js
+│           ├── coreapi-0.1.1.js
+│           ├── csrf.js
+│           ├── default.js
+│           ├── jquery-3.7.1.min.js
+│           ├── load-ajax-form.js
+│           └── prettify-min.js
+├── templates
+│   └── account
+│       └── email
+│           ├── email_confirmation_signup.html
+│           └── email_confirmation_signup.txt
+└── wait-for-it.sh
+
+72 directories, 300 files

@@ -1,73 +1,26 @@
-from decimal import Decimal
-
 from django.db import models
 
-from .brand import Brand
+from .base_product import BaseProduct
 from .product_model import ProductModel
 
 
-class Part(models.Model):
+class Part(BaseProduct):
     """
-    Represents a spare part or inventory item for inventory and sale.
+    Represents a spare part (Screen, Battery, etc.).
+    Inherits name, brand, and owner from BaseProduct.
     """
 
-    name = models.TextField(verbose_name="Part Name")
-    ean13 = models.CharField(
-        max_length=13, unique=True, blank=True, null=True, verbose_name="EAN-13 Barcode"
-    )
-    sku = models.CharField(
-        max_length=100, unique=True, blank=True, null=True, verbose_name="SKU"
-    )
-    serial_number = models.CharField(max_length=100, blank=True, verbose_name="Serie")
-    image_url = models.URLField(blank=True, verbose_name="Image URL")
-
-    # Pricing
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Retail Price",
-    )
-    repair_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Repair Price",
-    )
-    special_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Special Price",
-    )
-    other_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal("0.00"),
-        verbose_name="Other Price",
+    part_type = models.ForeignKey(
+        "PartType", on_delete=models.PROTECT, related_name="parts"
     )
 
-    # Relationships
-    brand = models.ForeignKey(
-        Brand,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="parts",
-        verbose_name="Brand",
-    )
     compatible_models = models.ManyToManyField(
-        ProductModel, related_name="parts", verbose_name="Compatible Models", blank=True
+        ProductModel,
+        related_name="compatible_parts",
+        verbose_name="Compatible Models",
+        blank=True,
     )
-
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = "Part"
         verbose_name_plural = "Parts"
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name

@@ -56,7 +56,7 @@ THIRD_PARTY_APPS = [
     "django_elasticsearch_dsl",
 ]
 
-LOCAL_APPS = ["apps.accounts", "apps.tech", "apps.repairs", "apps.stock"]
+LOCAL_APPS = ["apps.accounts", "apps.tech", "apps.repairs", "apps.stock", "apps.sales"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

@@ -4,7 +4,7 @@ init-backend:
 	@echo "${BLUE}Initializing backend...${NC}"
 
 	@echo "${YELLOW}Creating database migrations...${NC}"
-	@docker compose exec backend python manage.py makemigrations accounts tech repairs stock
+	@docker compose exec backend python manage.py makemigrations accounts tech repairs stock sales
 	@echo "${GREEN}Migrations created successfully!${NC}"
 
 
@@ -72,6 +72,13 @@ create-basic-users:
 	@echo "${YELLOW}Creating basic users and profiles...${NC}"
 	@docker compose exec backend python manage.py create_basic_users
 	@echo "${GREEN}Basic users and profiles created successfully!${NC}"
+
+.PHONY: populate-tech
+populate-tech:
+	@echo "Populating tech database from CSV files..."
+	@docker compose exec backend python manage.py populate_tech
+	@echo "${GREEN}tech app successfully populated!${NC}"
+	
 
 .PHONY: populate-full-dataset
 populate-full-dataset:

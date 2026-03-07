@@ -12,6 +12,7 @@ urlpatterns = [
     path("api/tech/", include("apps.tech.urls")),
     path("api/stock/", include("apps.stock.urls")),
     path("api/repairs/", include("apps.repairs.urls")),
+    path("api/sales/", include("apps.sales.urls")),
     path("api/auth/login/", MobileLoginView.as_view(), name="rest_login"),
     path("api/auth/", include("dj_rest_auth.urls")),
     path(

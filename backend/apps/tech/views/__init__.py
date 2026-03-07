@@ -1,13 +1,9 @@
 from .brand import BrandViewSet
+from .catalogue import CatalogueViewSet
+from .color import ColorViewSet
+from .device_type import DeviceTypeViewSet
 from .part import PartViewSet
 from .product_model import ProductModelViewSet
-from .device_type import DeviceTypeViewSet
+from .product_variant import ProductVariantViewSet
+from .quality_tier import QualityTierViewSet
 from .series import SeriesViewSet
-
-__all__ = [
-    "BrandViewSet",
-    "PartViewSet",
-    "ProductModelViewSet",
-    "DeviceTypeViewSet",
-    "SeriesViewSet",
-]

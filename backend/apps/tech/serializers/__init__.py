@@ -1,13 +1,10 @@
+from .base_product import BaseProductSerializer
 from .brand import BrandSerializer
+from .catalogue import CatalogueItemSerializer
+from .color import ColorSerializer
 from .device_type import DeviceTypeSerializer
 from .part import PartSerializer
 from .product_model import ProductModelSerializer
+from .product_variant import ProductVariantSerializer
+from .quality_tier import QualityTierSerializer
 from .series import SeriesSerializer
-
-__all__ = [
-    "BrandSerializer",
-    "DeviceTypeSerializer",
-    "PartSerializer",
-    "ProductModelSerializer",
-    "SeriesSerializer",
-]

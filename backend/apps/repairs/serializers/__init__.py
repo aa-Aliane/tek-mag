@@ -1,4 +1,2 @@
-from .discount import DiscountSerializer
-from .payment import PaymentSerializer
-from .repair import RepairSerializer
-from .repair_issue import RepairIssueSerializer
+from .issue import IssueSerializer, LaborPriceSerializer
+from .repair import RepairLineItemSerializer, RepairSerializer

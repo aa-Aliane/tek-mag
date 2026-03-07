@@ -25,10 +25,6 @@ class StoreOrder(models.Model):
     )
     notes = models.TextField(_("notes"), blank=True)
 
-    # Assuming items would be a ManyToMany or a separate OrderItem model.
-    # For now, keeping it simple as per initial requirement, but typically orders have line items.
-    # I will add a JSONField or just keep it basic for now.
-    # Let's add a items text field for simple description if no OrderItem model is requested yet.
     items_description = models.TextField(_("items description"), blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

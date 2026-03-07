@@ -1,24 +1,14 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import (
-    RepairViewSet, 
-    IssueViewSet, 
-    RepairIssueViewSet, 
-    PartQualityTierViewSet, 
-    ServicePricingViewSet,
-    PaymentViewSet,
-    DiscountViewSet
-)
+
+from .views import IssueViewSet, LaborPriceViewSet, RepairLineItemViewSet, RepairViewSet
 
 router = DefaultRouter()
-router.register(r'repairs', RepairViewSet)
-router.register(r'issues', IssueViewSet)
-router.register(r'repair-issues', RepairIssueViewSet)
-router.register(r'part-quality-tiers', PartQualityTierViewSet)
-router.register(r'service-pricing', ServicePricingViewSet)
-router.register(r'repairs/(?P<repair_pk>[^/.]+)/payments', PaymentViewSet, basename='repair-payment')
-router.register(r'repairs/(?P<repair_pk>[^/.]+)/discounts', DiscountViewSet, basename='repair-discount')
+router.register(r"issues", IssueViewSet)
+router.register(r"labor-prices", LaborPriceViewSet)
+router.register(r"repairs", RepairViewSet)
+router.register(r"line-items", RepairLineItemViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
 ]

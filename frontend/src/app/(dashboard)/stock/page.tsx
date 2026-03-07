@@ -1,8 +1,5 @@
-import StockView from "@/features/stock/_main/_components/stock-view";
-import React from "react";
+import { redirect } from "next/navigation";
 
-const StockPage: React.FC = () => {
-  return <StockView />;
-};
-
-export default StockPage;
+export default function StockPage() {
+  redirect("/stock/items");
+}

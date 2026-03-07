@@ -1,13 +1,10 @@
+from .base_product import BaseProduct
 from .brand import Brand
+from .color import Color
 from .device_type import DeviceType
 from .part import Part
+from .part_type import PartType
 from .product_model import ProductModel
+from .product_variant import ProductVariant
+from .quality_tier import QualityTier
 from .series import Series
-
-__all__ = [
-    "Brand",
-    "Series",
-    "ProductModel",
-    "Part",
-    "DeviceType",
-]

@@ -1,18 +1,16 @@
-from rest_framework import viewsets
-from django_filters import rest_framework as filters
 from apps.tech.models import Part
 from apps.tech.serializers.part import PartSerializer
+from django_filters import rest_framework as filters
+from rest_framework import viewsets
 
 
 class PartFilter(filters.FilterSet):
     class Meta:
         model = Part
         fields = {
-            'name': ['icontains'],
-            'brand': ['exact'],
-            'compatible_models': ['exact'],
-            'sku': ['exact'],
-            'ean13': ['exact'],
+            "name": ["icontains"],
+            "brand": ["exact"],
+            "compatible_models": ["exact"],
         }
 
 
