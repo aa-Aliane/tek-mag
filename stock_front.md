@@ -96,7 +96,7 @@ const CATEGORY_TO_PRODUCT_TYPE: Record<
   computers: undefined, // Mixed: MacBooks + SSDs
 };
 
-interface CatalogueTableProps {
+interface Props {
   onSelect: (item: CatalogueItem) => void;
 }
 
@@ -146,7 +146,7 @@ function VariantChips({ variants }: { variants: VariantSummary[] }) {
 
 // ── Main table ─────────────────────────────────────────────────────────────
 
-export const CatalogueTable = ({ onSelect }: CatalogueTableProps) => {
+export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
   const {
     search,
     setSearch,
@@ -160,6 +160,10 @@ export const CatalogueTable = ({ onSelect }: CatalogueTableProps) => {
 
   const { category } = useCategoriesStore();
 
+  const selectedItems = useCatalogueStore((state) => state.selectedItems);
+  const addItem = useCatalogueStore((state) => state.addItem);
+  const removeItem = useCatalogueStore((state) => state.removeItem);
+
   // Derived: translate header tab → API product_type param
   const product_type = CATEGORY_TO_PRODUCT_TYPE[category];
 
@@ -168,15 +172,19 @@ export const CatalogueTable = ({ onSelect }: CatalogueTableProps) => {
     pageSize: 10,
     search: debouncedSearch,
     product_type,
-    // Map store filter "source" → is_global param
+    // source -> is_global
     ...(filters.source === "global" && { is_global: true }),
     ...(filters.source === "private" && { is_global: false }),
-    // Pass through the rest
+    // numeric FK filters
     brand: filters.brand ? Number(filters.brand) : undefined,
     quality_tier: filters.quality_tier
       ? Number(filters.quality_tier)
       : undefined,
     color: filters.color ? Number(filters.color) : undefined,
+    device_type: filters.device_type ? Number(filters.device_type) : undefined,
+    part_type: filters.part_type ? Number(filters.part_type) : undefined,
+    // string filter
+    storage: filters.storage ?? undefined,
   });
 
   // Unpaginated fallback (no page param sent) returns a plain array
@@ -267,18 +275,32 @@ export const CatalogueTable = ({ onSelect }: CatalogueTableProps) => {
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <div className="text-right">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 text-blue-600 hover:bg-blue-50"
-            onClick={() => onSelect(row.original)}
-          >
-            Ajouter
-          </Button>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const currentItem = row.original;
+        const isSelected = selectedItems.some(
+          (item: CatalogueItem) => item.id === currentItem.id,
+        );
+        const toggleItem = isSelected
+          ? (item: CatalogueItem) => removeItem(item.id)
+          : (item: CatalogueItem) => addItem(item);
+
+        return (
+          <div className="text-right">
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`h-8 gap-2 transition-all ${
+                isSelected
+                  ? "text-green-600 bg-green-50 hover:bg-green-100"
+                  : "text-blue-600 hover:bg-blue-50"
+              }`}
+              onClick={() => toggleItem(currentItem)}
+            >
+              {isSelected ? "Retirer" : "Ajouter"}
+            </Button>
+          </div>
+        );
+      },
     },
   ];
 
@@ -773,6 +795,7 @@ import {
   Headphones,
   Monitor,
   Info,
+  ShoppingBasket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -780,6 +803,7 @@ import {
   useCategoriesStore,
   type entityCategory,
 } from "@/features/stock/_store/categories";
+import { useCatalogueStore } from "@/features/stock/_store/catalogue";
 
 interface HeaderProps {
   onCategoryChange: (category: entityCategory) => void;
@@ -788,6 +812,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onCategoryChange, onCreateNew }) => {
   const category = useCategoriesStore((state) => state.category);
+  const selectedItems = useCatalogueStore((state) => state.selectedItems);
   return (
     <div className="flex flex-col gap-6 pb-6 border-b">
       {/* Row 1: Titre et Actions Principales */}
@@ -803,12 +828,18 @@ const Header: React.FC<HeaderProps> = ({ onCategoryChange, onCreateNew }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-2 h-9">
+          {/* <Button variant="outline" size="sm" className="gap-2 h-9">
             <FileDown className="size-4" /> Importer CSV
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2 h-9">
+          </Button> */}
+          {/* <Button variant="outline" size="sm" className="gap-2 h-9">
             <ScanBarcode className="size-4" /> Scanner
-          </Button>
+          </Button> */}
+          {selectedItems.length > 0 && (
+            <Button variant="destructive">
+              Panier ({selectedItems.length})
+              <ShoppingBasket />
+            </Button>
+          )}
           <Button
             onClick={onCreateNew}
             size="sm"
@@ -1348,6 +1379,7 @@ export const useStockList = ({
 
 ```ts
 import { create } from "zustand";
+import { CatalogueItem } from "../_types/catalogue";
 
 interface CatalogueFilters {
   brand?: string;
@@ -1364,10 +1396,14 @@ interface CatalogueStore {
   debouncedSearch: string;
   page: number;
   filters: CatalogueFilters;
+  selectedItems: CatalogueItem[];
   setSearch: (val: string) => void;
   setPage: (page: number) => void;
   setFilter: (key: keyof CatalogueFilters, val: string) => void;
   resetFilters: () => void;
+  addItem: (item: CatalogueItem) => void;
+  removeItem: (itemId: number) => void;
+  removeAllItems: () => void;
 }
 
 export const useCatalogueStore = create<CatalogueStore>((set) => ({
@@ -1377,7 +1413,7 @@ export const useCatalogueStore = create<CatalogueStore>((set) => ({
   filters: {
     source: "all",
   },
-
+  selectedItems: [],
   setSearch: (val) => {
     set({ search: val, page: 1 });
     clearTimeout((window as any).searchTimer);
@@ -1404,6 +1440,16 @@ export const useCatalogueStore = create<CatalogueStore>((set) => ({
       page: 1,
       filters: { source: "all" },
     }),
+
+  addItem: (item: CatalogueItem) =>
+    set((state) => ({ selectedItems: [...state.selectedItems, item] })),
+  removeItem: (itemId: number) =>
+    set((state) => ({
+      selectedItems: state.selectedItems.filter(
+        (item: CatalogueItem) => item.id !== itemId,
+      ),
+    })),
+  removeAllItems: () => ({ selectedItems: [] }),
 }));
 
 ```
@@ -1543,6 +1589,8 @@ export interface CatalogueFilters {
   device_type?: number;
   series?: number;
   is_popular?: boolean;
+  //
+  storage?: string;
 }
 
 ```

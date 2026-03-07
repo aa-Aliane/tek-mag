@@ -9,8 +9,6 @@ import {
   FilterX,
   ChevronLeft,
   ChevronRight,
-  Cpu,
-  Package,
 } from "lucide-react";
 
 import { DataTable } from "@/components/data-table";
@@ -21,7 +19,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useCatalogue } from "../_queries/use-catalogue";
 import { useCatalogueStore } from "../_store/catalogue";
-import { useCategoriesStore } from "../_store/categories";
+import { useCategoriesStore, entityCategory } from "../_store/categories";
 import {
   CatalogueItem,
   CatalogueFilters,
@@ -31,55 +29,51 @@ import {
 } from "../_types/catalogue";
 import { FiltersBar } from "./filters-bar";
 
-// Maps the header category tab to the product_type filter the API understands.
-// computers is intentionally undefined — both Parts (SSD, RAM) and ProductModels
-// (MacBook, iMac) live there so we show everything.
 const CATEGORY_TO_PRODUCT_TYPE: Record<
   string,
   CatalogueFilters["product_type"]
 > = {
-  devices: "product_model", // Smartphones, Tablettes — serialized
-  repairs: "part", // Écrans, Batteries — spare parts
-  accessories: "part", // Coques, Protections — spare parts
-  computers: undefined, // Mixed: MacBooks + SSDs
+  devices: "product_model",
+  repairs: "part",
+  accessories: "part",
+  computers: undefined,
 };
 
 interface Props {
   onSelect: (item: CatalogueItem) => void;
 }
 
-// ── Variant chips ──────────────────────────────────────────────────────────
+// ── Reusable chip lists ────────────────────────────────────────────────────
 
-function VariantChips({ variants }: { variants: VariantSummary[] }) {
-  const MAX_VISIBLE = 3;
-  const visible = variants.slice(0, MAX_VISIBLE);
-  const overflow = variants.length - MAX_VISIBLE;
-
-  if (variants.length === 0) {
+function ChipList({
+  items,
+  max = 3,
+  emptyLabel,
+}: {
+  items: string[];
+  max?: number;
+  emptyLabel: string;
+}) {
+  if (items.length === 0) {
     return (
       <span className="text-[10px] text-muted-foreground italic">
-        Aucune variante
+        {emptyLabel}
       </span>
     );
   }
-
+  const visible = items.slice(0, max);
+  const overflow = items.length - max;
   return (
     <div className="flex flex-wrap gap-1">
-      {visible.map((v) => {
-        const label = [v.quality_tier?.name, v.color?.name, v.storage]
-          .filter(Boolean)
-          .join(" • ");
-
-        return (
-          <Badge
-            key={v.id}
-            variant="outline"
-            className="text-[10px] px-1.5 h-5 font-normal shadow-none"
-          >
-            {label || "Standard"}
-          </Badge>
-        );
-      })}
+      {visible.map((label, i) => (
+        <Badge
+          key={i}
+          variant="outline"
+          className="text-[10px] px-1.5 h-5 font-normal shadow-none"
+        >
+          {label}
+        </Badge>
+      ))}
       {overflow > 0 && (
         <Badge
           variant="secondary"
@@ -92,7 +86,243 @@ function VariantChips({ variants }: { variants: VariantSummary[] }) {
   );
 }
 
-// ── Main table ─────────────────────────────────────────────────────────────
+// ── Per-category column builders ───────────────────────────────────────────
+
+// Shared: product name + contextual subtitle + inline source icon
+function productCell(item: CatalogueItem) {
+  const isGlobal = item.owner === null;
+
+  const subtitle = isCataloguePart(item)
+    ? item.subtype_data.part_type?.name
+    : isCatalogueProductModel(item)
+      ? (item.subtype_data.series?.name ?? item.subtype_data.device_type?.name)
+      : null;
+
+  return (
+    <div className="flex flex-col py-1">
+      <div className="flex items-center gap-1.5">
+        {isGlobal ? (
+          <Globe className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+        ) : (
+          <User className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+        )}
+        <span className="font-medium text-sm leading-none">{item.name}</span>
+      </div>
+      <span className="text-[11px] text-muted-foreground mt-1 ml-[18px]">
+        {item.brand?.name ?? "Générique"}
+        {subtitle ? ` • ${subtitle}` : ""}
+      </span>
+    </div>
+  );
+}
+
+// Devices: configs = unique storage × grade combinations
+function configsFromVariants(variants: VariantSummary[]): string[] {
+  return variants.map((v) => {
+    return (
+      [v.storage, v.quality_tier?.name].filter(Boolean).join(" • ") ||
+      "Standard"
+    );
+  });
+}
+
+// Repairs / accessories: quality tier chips
+function tiersFromVariants(variants: VariantSummary[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const v of variants) {
+    const name = v.quality_tier?.name;
+    if (name && !seen.has(name)) {
+      seen.add(name);
+      result.push(name);
+    }
+  }
+  return result;
+}
+
+// Accessories: color chips
+function colorsFromVariants(variants: VariantSummary[]): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const v of variants) {
+    const name = v.color?.name;
+    if (name && !seen.has(name)) {
+      seen.add(name);
+      result.push(name);
+    }
+  }
+  return result;
+}
+
+// Compatible models chips (repairs / accessories)
+function compatibleModels(item: CatalogueItem): string[] {
+  if (!isCataloguePart(item)) return [];
+  return item.subtype_data.compatible_models.map((m) => m.name);
+}
+
+// ── Column definitions per category ───────────────────────────────────────
+
+function buildColumns(
+  category: entityCategory,
+  selectedItems: CatalogueItem[],
+  addItem: (item: CatalogueItem) => void,
+  removeItem: (id: number) => void,
+): ColumnDef<CatalogueItem>[] {
+  const actionColumn: ColumnDef<CatalogueItem> = {
+    id: "actions",
+    cell: ({ row }) => {
+      const current = row.original;
+      const isSelected = selectedItems.some((i) => i.id === current.id);
+      return (
+        <div className="text-right">
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`h-8 gap-2 transition-all ${
+              isSelected
+                ? "text-green-600 bg-green-50 hover:bg-green-100"
+                : "text-blue-600 hover:bg-blue-50"
+            }`}
+            onClick={() =>
+              isSelected ? removeItem(current.id) : addItem(current)
+            }
+          >
+            {isSelected ? "Retirer" : "Ajouter"}
+          </Button>
+        </div>
+      );
+    },
+  };
+
+  // ── Appareils ────────────────────────────────────────────────────────────
+  if (category === "devices") {
+    return [
+      {
+        header: "Appareil",
+        cell: ({ row }) => productCell(row.original),
+      },
+      {
+        header: "Configurations disponibles",
+        cell: ({ row }) => (
+          <ChipList
+            items={configsFromVariants(row.original.variants)}
+            emptyLabel="Aucune config"
+          />
+        ),
+      },
+      actionColumn,
+    ];
+  }
+
+  // ── Réparation ────────────────────────────────────────────────────────────
+  if (category === "repairs") {
+    return [
+      {
+        header: "Pièce",
+        cell: ({ row }) => productCell(row.original),
+      },
+      {
+        header: "Compatible avec",
+        cell: ({ row }) => (
+          <ChipList
+            items={compatibleModels(row.original)}
+            max={4}
+            emptyLabel="Non renseigné"
+          />
+        ),
+      },
+      {
+        header: "Qualités dispo",
+        cell: ({ row }) => (
+          <ChipList
+            items={tiersFromVariants(row.original.variants)}
+            emptyLabel="Aucune"
+          />
+        ),
+      },
+      actionColumn,
+    ];
+  }
+
+  // ── Accessoires ───────────────────────────────────────────────────────────
+  if (category === "accessories") {
+    return [
+      {
+        header: "Accessoire",
+        cell: ({ row }) => productCell(row.original),
+      },
+      {
+        header: "Compatible avec",
+        cell: ({ row }) => (
+          <ChipList
+            items={compatibleModels(row.original)}
+            max={4}
+            emptyLabel="Non renseigné"
+          />
+        ),
+      },
+      {
+        header: "Couleurs dispo",
+        cell: ({ row }) => (
+          <ChipList
+            items={colorsFromVariants(row.original.variants)}
+            emptyLabel="Aucune"
+          />
+        ),
+      },
+      actionColumn,
+    ];
+  }
+
+  // ── Informatique (mixed) ──────────────────────────────────────────────────
+  return [
+    {
+      header: "Produit",
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex flex-col py-1">
+            <div className="flex items-center gap-1.5">
+              {item.owner === null ? (
+                <Globe className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+              ) : (
+                <User className="h-3 w-3 text-muted-foreground/60 shrink-0" />
+              )}
+              <span className="font-medium text-sm leading-none">
+                {item.name}
+              </span>
+              {/* Show Part vs Device badge only in the mixed computers tab */}
+              <Badge
+                variant="secondary"
+                className="text-[9px] h-4 px-1 font-normal ml-1"
+              >
+                {isCataloguePart(item) ? "Composant" : "Appareil"}
+              </Badge>
+            </div>
+            <span className="text-[11px] text-muted-foreground mt-1 ml-[18px]">
+              {item.brand?.name ?? "Générique"}
+              {isCatalogueProductModel(item) && item.subtype_data.device_type
+                ? ` • ${item.subtype_data.device_type.name}`
+                : ""}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      header: "Configurations",
+      cell: ({ row }) => (
+        <ChipList
+          items={configsFromVariants(row.original.variants)}
+          emptyLabel="Aucune config"
+        />
+      ),
+    },
+    actionColumn,
+  ];
+}
+
+// ── Main component ─────────────────────────────────────────────────────────
 
 export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
   const {
@@ -104,15 +334,12 @@ export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
     resetFilters,
     page,
     setPage,
+    selectedItems,
+    addItem,
+    removeItem,
   } = useCatalogueStore();
 
   const { category } = useCategoriesStore();
-
-  const selectedItems = useCatalogueStore((state) => state.selectedItems);
-  const addItem = useCatalogueStore((state) => state.addItem);
-  const removeItem = useCatalogueStore((state) => state.removeItem);
-
-  // Derived: translate header tab → API product_type param
   const product_type = CATEGORY_TO_PRODUCT_TYPE[category];
 
   const { data, isLoading, isPlaceholderData } = useCatalogue({
@@ -120,10 +347,8 @@ export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
     pageSize: 10,
     search: debouncedSearch,
     product_type,
-    // source -> is_global
     ...(filters.source === "global" && { is_global: true }),
     ...(filters.source === "private" && { is_global: false }),
-    // numeric FK filters
     brand: filters.brand ? Number(filters.brand) : undefined,
     quality_tier: filters.quality_tier
       ? Number(filters.quality_tier)
@@ -131,126 +356,15 @@ export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
     color: filters.color ? Number(filters.color) : undefined,
     device_type: filters.device_type ? Number(filters.device_type) : undefined,
     part_type: filters.part_type ? Number(filters.part_type) : undefined,
-    // string filter
     storage: filters.storage ?? undefined,
   });
 
-  // Unpaginated fallback (no page param sent) returns a plain array
   const items = Array.isArray(data) ? data : (data?.results ?? []);
   const totalCount = Array.isArray(data) ? data.length : (data?.count ?? 0);
   const hasNext = Array.isArray(data) ? false : !!data?.next;
   const hasPrev = Array.isArray(data) ? false : !!data?.previous;
 
-  const columns: ColumnDef<CatalogueItem>[] = [
-    {
-      header: "Produit",
-      cell: ({ row }) => {
-        const item = row.original;
-
-        // Subtitle: part type name for parts, series name for device models
-        const subtitle = isCataloguePart(item)
-          ? item.subtype_data.part_type?.name
-          : isCatalogueProductModel(item)
-            ? (item.subtype_data.series?.name ??
-              item.subtype_data.device_type?.name)
-            : null;
-
-        return (
-          <div className="flex flex-col py-1">
-            <span className="font-medium text-sm leading-none">
-              {item.name}
-            </span>
-            <span className="text-[11px] text-muted-foreground mt-1">
-              {item.brand?.name ?? "Générique"}
-              {subtitle ? ` • ${subtitle}` : ""}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      header: "Type",
-      cell: ({ row }) => {
-        const item = row.original;
-
-        if (isCataloguePart(item)) {
-          return (
-            <Badge
-              variant="secondary"
-              className="gap-1 font-normal text-[10px] h-5"
-            >
-              <Package className="h-3 w-3" />
-              {item.subtype_data.part_type?.name ?? "Pièce"}
-            </Badge>
-          );
-        }
-        if (isCatalogueProductModel(item)) {
-          return (
-            <Badge
-              variant="outline"
-              className="gap-1 font-normal text-[10px] h-5"
-            >
-              <Cpu className="h-3 w-3" />
-              {item.subtype_data.device_type?.name ?? "Appareil"}
-            </Badge>
-          );
-        }
-        return null;
-      },
-    },
-    {
-      header: "Variantes existantes",
-      cell: ({ row }) => <VariantChips variants={row.original.variants} />,
-    },
-    {
-      header: "Source",
-      cell: ({ row }) => {
-        const isGlobal = row.original.owner === null;
-        return (
-          <Badge
-            variant={isGlobal ? "secondary" : "outline"}
-            className="gap-1 font-normal text-[10px] h-5"
-          >
-            {isGlobal ? (
-              <Globe className="h-3 w-3" />
-            ) : (
-              <User className="h-3 w-3" />
-            )}
-            {isGlobal ? "Global" : "Perso"}
-          </Badge>
-        );
-      },
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => {
-        const currentItem = row.original;
-        const isSelected = selectedItems.some(
-          (item: CatalogueItem) => item.id === currentItem.id,
-        );
-        const toggleItem = isSelected
-          ? (item: CatalogueItem) => removeItem(item.id)
-          : (item: CatalogueItem) => addItem(item);
-
-        return (
-          <div className="text-right">
-            <Button
-              size="sm"
-              variant="ghost"
-              className={`h-8 gap-2 transition-all ${
-                isSelected
-                  ? "text-green-600 bg-green-50 hover:bg-green-100"
-                  : "text-blue-600 hover:bg-blue-50"
-              }`}
-              onClick={() => toggleItem(currentItem)}
-            >
-              {isSelected ? "Retirer" : "Ajouter"}
-            </Button>
-          </div>
-        );
-      },
-    },
-  ];
+  const columns = buildColumns(category, selectedItems, addItem, removeItem);
 
   return (
     <div className="flex flex-col h-full overflow-hidden border rounded-lg bg-background">
@@ -301,6 +415,10 @@ export const CatalogueTable: React.FC<Props> = ({ onSelect }) => {
         {isLoading && items.length === 0 ? (
           <div className="flex items-center justify-center h-40 text-sm text-muted-foreground animate-pulse">
             Chargement du catalogue...
+          </div>
+        ) : items.length === 0 ? (
+          <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+            Aucun résultat pour ces filtres.
           </div>
         ) : (
           <DataTable columns={columns} data={items} />
